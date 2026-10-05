@@ -39,7 +39,7 @@ public class StudentRecord {
 	public enum EntryType {start, resume, not_set};
 
 	/// <summary>cmi.exit datatype</summary>
-	public enum ExitType {timeout, suspend, normal};
+	public enum ExitType {timeout, suspend, normal, logout};
 
 	/// <summary>cmi.interactions.n.type datatype</summary>
 	public enum InteractionType {true_false, choice, fill_in, long_fill_in, likert, matching, performance, sequencing, numeric, other, not_set};

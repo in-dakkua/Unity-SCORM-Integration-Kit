@@ -15,5 +15,22 @@
       "requires_visual_check": "bool — si true, no se puede marcar done sin .harness/progress/visual_check_<name>.md firmado por un humano"
     }
   },
-  "features": []
+  "features": [
+    {
+      "id": "F001",
+      "name": "scorm2004-webgl-e2e-build",
+      "status": "in_progress",
+      "description": "Prueba end-to-end: proyecto sincronizado con la versión WebGL del .unitypackage, bugs bloqueantes del runtime corregidos, build WebGL por línea de comandos y zip SCORM 2004 (3rd Edition por defecto, 4th opcional) listo para subir a SCORM Cloud y Moodle.",
+      "acceptance": [
+        "Assets/ contiene la versión WebGL (Plugins/scorm.jslib, WebGLTemplates/SCORM, scripts sin ExternalCall ni System.Threading); se elimina WebPlayerTemplates.",
+        "Bugs bloqueantes corregidos: bucles i++/x++ en AddInteraction, 'pattrern', vocabulario (true-false, fill-in, long-fill-in, time-out, logout), null-checks en UpdateInteraction, CultureInfo.InvariantCulture en todo formateo/parseo numérico, DateTime.Parse tolerante a vacío.",
+        "scorm.js: init comprobado contra string 'true', DebugPrint sin #console no rompe, sin window.close() en Terminate, Commit+Terminate en pagehide, sin dependencia de carrera con unityInstance (callback desde jslib o espera explícita), respuesta inmediata cuando no hay API.",
+        "Exportador: manifest UTF-8 con XML escapado, selector 3rd/4th Edition (completionThreshold como elemento en 3rd, atributos en 4th), schemaversion correcto, sin limitConditions/timeLimitAction cuando no se configuran, lista de ficheros del build WebGL real, sin .meta en el zip.",
+        "Build WebGL por CLI (-batchmode -executeMethod) con plantilla SCORM, compresión desactivada o Decompression Fallback, y empaquetado del zip por CLI sin GUI.",
+        "Zip generado validado localmente (manifest contra XSD o inspección) y probado con ScormSimulator; prueba en SCORM Cloud la hace el humano (visual check)."
+      ],
+      "requires_plan_approval": true,
+      "requires_visual_check": true
+    }
+  ]
 }

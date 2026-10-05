@@ -82,6 +82,7 @@ public class ControllerMain : MonoBehaviour {
 	/// This is the point where you should 'kick off' the activity of your SCORM object.
 	/// Make sure the SCORM object does not begin or pauses until you receive this message.
 	/// </description>
+	[UnityEngine.Scripting.Preserve]	// called by name through BroadcastMessage/SendMessage
 	public void Scorm_Initialize_Complete() {
 
 		StartCoroutine (Startup());
@@ -108,6 +109,7 @@ public class ControllerMain : MonoBehaviour {
 	/// This is the point where you should exit the Scorm object.
 	/// Make sure the SCORM object does not exit until you receive this message.
 	/// </description>
+	[UnityEngine.Scripting.Preserve]	// called by name through BroadcastMessage/SendMessage
 	public void Scorm_Commit_Complete() {
 		ScormManager.Terminate ();
 	}
@@ -116,8 +118,8 @@ public class ControllerMain : MonoBehaviour {
 	/// Log the specified data.
 	/// </summary>
 	/// <param name="data">Data.</param>
+	[UnityEngine.Scripting.Preserve]	// called by name through BroadcastMessage/SendMessage
 	public void Log(string data) {
-		//UnityEngine.Application.ExternalCall("DebugPrint",data);						//Log into HTML Wrapper (don't use in production as it is messy, useful for testing in development)
 		GameObject.Find ("LogText").GetComponent<Text> ().text += data + "\n";			//Log into Log Text in Unity3D App
 	}
 
@@ -401,7 +403,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerScoreMinEditEnd(string value) {
-		ScormManager.SetScoreMin(float.Parse (value));
+		float min;
+		if (ScormFormat.TryParseUserReal(value, out min))
+			ScormManager.SetScoreMin(min);
 	}
 
 	/// <summary>
@@ -409,9 +413,12 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerScoreMaxEditEnd(string value) {
-		ScormManager.SetScoreMax(float.Parse (value));
-		float scoreScaled = float.Parse (GameObject.Find ("InputFieldScore").GetComponent<InputField> ().text) / float.Parse (value);
-		ScormManager.SetScoreScaled (scoreScaled);
+		float max;
+		if (!ScormFormat.TryParseUserReal(value, out max))
+			return;
+		ScormManager.SetScoreMax(max);
+		float raw = ScormFormat.ParseUserReal(GameObject.Find ("InputFieldScore").GetComponent<InputField> ().text);
+		SetScaledScore(raw, max);
 	}
 
 	/// <summary>
@@ -419,9 +426,19 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerScoreRawEditEnd(string value) {
-		ScormManager.SetScoreRaw(float.Parse (value));
-		float scoreScaled = float.Parse (value) / float.Parse (GameObject.Find ("InputFieldMax").GetComponent<InputField> ().text);
-		ScormManager.SetScoreScaled (scoreScaled);
+		float raw;
+		if (!ScormFormat.TryParseUserReal(value, out raw))
+			return;
+		ScormManager.SetScoreRaw(raw);
+		float max = ScormFormat.ParseUserReal(GameObject.Find ("InputFieldMax").GetComponent<InputField> ().text);
+		SetScaledScore(raw, max);
+	}
+
+	/// <summary>Sets cmi.score.scaled = raw / max, limited to the SCORM range [-1, 1]. Skipped when max is 0.</summary>
+	private void SetScaledScore(float raw, float max) {
+		if (Mathf.Approximately(max, 0f))
+			return;
+		ScormManager.SetScoreScaled (Mathf.Clamp(raw / max, -1f, 1f));
 	}
 
 	/// <summary>
@@ -429,7 +446,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerPreferenceAudioCaptioningEndEdit(string value) {
-		ScormManager.SetLearnerPreferenceAudioCaptioning (int.Parse (value));
+		int audioCaptioning;
+		if (int.TryParse (value, out audioCaptioning))
+			ScormManager.SetLearnerPreferenceAudioCaptioning (audioCaptioning);
 	}
 
 	/// <summary>
@@ -437,7 +456,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerPreferenceAudioLevelEndEdit(string value) {
-		ScormManager.SetLearnerPreferenceAudioLevel (float.Parse (value));
+		float audioLevel;
+		if (ScormFormat.TryParseUserReal (value, out audioLevel))
+			ScormManager.SetLearnerPreferenceAudioLevel (audioLevel);
 	}
 
 	/// <summary>
@@ -445,7 +466,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerPreferenceDeliverySpeedEndEdit(string value) {
-		ScormManager.SetLearnerPreferenceDeliverySpeed (float.Parse (value));
+		float deliverySpeed;
+		if (ScormFormat.TryParseUserReal (value, out deliverySpeed))
+			ScormManager.SetLearnerPreferenceDeliverySpeed (deliverySpeed);
 	}
 
 	/// <summary>
@@ -527,8 +550,8 @@ public class ControllerMain : MonoBehaviour {
 			newObjective.completionStatus = StudentRecord.CompletionStatusType.not_attempted;
 			newObjective.progressMeasure = 0f;
 
-			ScormManager.AddObjective(newObjective);
 			int index = ScormManager.GetObjectives().Count;
+			ScormManager.AddObjective(newObjective);
 			AddObjectiveToList(index, newObjective);
 			
 			//Reset Fields
@@ -568,16 +591,27 @@ public class ControllerMain : MonoBehaviour {
 			StudentRecord.LearnerInteractionRecord newInteraction = new StudentRecord.LearnerInteractionRecord ();
 			newInteraction.id = ScormManager.GetNextInteractionId();
 			newInteraction.timeStamp = DateTime.Now;
-			newInteraction.type = StudentRecord.InteractionType.other;
-			newInteraction.weighting = float.Parse(weighting);
-			newInteraction.response = studentResponse;
+			// A true-false interaction exercises the SCORM vocabulary ("true-false"), the interaction objectives and the
+			// correct_responses pattern. The learner response must be "true" or "false" for this type, so it follows the
+			// "Correct" toggle; the typed response is kept in the description.
+			newInteraction.type = StudentRecord.InteractionType.true_false;
+			newInteraction.weighting = ScormFormat.ParseUserReal(weighting);
+			newInteraction.response = correct ? "true" : "false";
 			newInteraction.latency = 18.4f;
-			newInteraction.description = description;
-			StudentRecord.ResultType result = StudentRecord.ResultType.incorrect;
-			if (correct) {
-				result = StudentRecord.ResultType.correct;
+			newInteraction.description = description + " (response: " + studentResponse + ")";
+			newInteraction.result = correct ? StudentRecord.ResultType.correct : StudentRecord.ResultType.incorrect;
+
+			newInteraction.objectives = new List<StudentRecord.LearnerInteractionObjective>();
+			List<StudentRecord.Objectives> objectives = ScormManager.GetObjectives();
+			if (objectives != null && objectives.Count > 0 && !string.IsNullOrEmpty(objectives[0].id)) {
+				StudentRecord.LearnerInteractionObjective interactionObjective = new StudentRecord.LearnerInteractionObjective();
+				interactionObjective.id = objectives[0].id;
+				newInteraction.objectives.Add(interactionObjective);
 			}
-			newInteraction.result = result;
+
+			StudentRecord.LearnerInteractionCorrectResponse correctResponse = new StudentRecord.LearnerInteractionCorrectResponse();
+			correctResponse.pattern = "true";
+			newInteraction.correctResponses = new List<StudentRecord.LearnerInteractionCorrectResponse> { correctResponse };
 
 			ScormManager.AddInteraction (newInteraction);
 			AddLearnerInteractionToList (newInteraction);

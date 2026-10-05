@@ -1,40 +1,28 @@
 {
-  "unity_version": "6000.0 LTS",
-  "unity_version_source": "Confirmado por el developer (Unity 6 LTS). OJO: ProjectSettings/ProjectVersion.txt dice 5.0.2f1 (proyecto heredado, aún sin reimportar en Unity 6).",
-
+  "unity_version": "6000.3.21f1",
+  "unity_version_source": "ProjectSettings/ProjectVersion.txt (6000.3.21f1), verificado 2026-10-05.",
   "scripts_root": ["Assets/SCORM/_Scripts", "Assets/SCORM/Editor"],
   "tests_root": ["Assets/SCORM/Tests"],
-
   "architecture_status": "adapted_to_existing",
   "architecture_notes": "Kit SCORM con carpeta plana: Assets/SCORM/_Scripts (runtime) y Assets/SCORM/Editor (exportador). Sin Core/Gameplay/UI; architecture.md describe esta estructura real.",
-
   "automation_tool": "none",
   "automation_tool_notes": "Sin herramienta por ahora.",
   "automation_tool_verified": false,
   "automation_tool_setup_todo": null,
-
   "editor_write_policy": "not_applicable",
-
   "verification_mode": "plan_and_visual",
-
   "requires_plan_approval_default": true,
   "requires_visual_check_default": true,
-
-  "unity_editor_path": null,
-
+  "unity_editor_path": "C:/Program Files/Unity/Hub/Editor/6000.3.21f1/Editor/Unity.exe",
   "unity_dev_skills_enabled": true,
-
   "vcs_provider": "github",
   "vcs_provider_notes": "Remoto: github.com/in-dakkua/Unity-SCORM-Integration-Kit. Tabla común del harness.",
   "vcs_verified": false,
   "vcs_setup_todo": "falta comprobar gh auth status en esta máquina",
   "vcs_rules_source": "harness_common",
   "vcs_permissions": {},
-
   "release_guideline": "none",
-
   "deploy_enabled": false,
-
   "configured_by": "dguerra@invelon.com",
   "configured_at": "2026-10-05"
 }

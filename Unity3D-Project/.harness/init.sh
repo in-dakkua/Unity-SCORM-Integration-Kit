@@ -429,7 +429,7 @@ echo "── 7. Ejecutando tests de Unity ────────────�
 if [ -n "$UNITY_EDITOR_PATH" ] && [ -x "$UNITY_EDITOR_PATH" ]; then
   mkdir -p .harness/progress
   if "$UNITY_EDITOR_PATH" -batchmode -projectPath . -runTests \
-       -testPlatform EditMode -testResults ./.harness/progress/editmode-results.xml -quit; then
+       -testPlatform EditMode -testResults ./.harness/progress/editmode-results.xml -logFile ./.harness/progress/editmode-tests.log; then
     ok "Tests EditMode ejecutados (ver .harness/progress/editmode-results.xml)"
   else
     fail "Tests EditMode fallaron o Unity batchmode devolvió error"
