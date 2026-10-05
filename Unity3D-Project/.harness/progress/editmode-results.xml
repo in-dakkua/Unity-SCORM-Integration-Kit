@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="35" result="Skipped:Ignored" total="35" passed="34" failed="0" inconclusive="0" skipped="1" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 13:21:34Z" end-time="2026-10-05 13:21:35Z" duration="0,7163799">
+  <test-suite type="TestSuite" id="1000" name="SCORM Testbed" fullname="SCORM Testbed" runstate="Runnable" testcasecount="35" result="Skipped" label="Ignored" start-time="2026-10-05 13:21:34Z" end-time="2026-10-05 13:21:35Z" duration="0.716380" total="35" passed="34" failed="0" inconclusive="0" skipped="1" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <reason>
+      <message><![CDATA[One or more child tests were ignored]]></message>
+    </reason>
+    <test-suite type="Assembly" id="1039" name="Assembly-CSharp-Editor.dll" fullname="D:/Dev/Github/Unity-SCORM-Integration-Kit/Unity3D-Project/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="35" result="Skipped" label="Ignored" start-time="2026-10-05 13:21:34Z" end-time="2026-10-05 13:21:35Z" duration="0.707157" total="35" passed="34" failed="0" inconclusive="0" skipped="1" asserts="0">
+      <properties>
+        <property name="_PID" value="40292" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <reason>
+        <message><![CDATA[One or more child tests were ignored]]></message>
+      </reason>
+      <test-suite type="TestFixture" id="1001" name="ScormEditorBackendInteractionTests" fullname="ScormEditorBackendInteractionTests" classname="ScormEditorBackendInteractionTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-05 13:21:34Z" end-time="2026-10-05 13:21:35Z" duration="0.073765" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1004" name="AddInteraction_WithoutTimestamp_UsesNow" fullname="ScormEditorBackendInteractionTests.AddInteraction_WithoutTimestamp_UsesNow" methodname="AddInteraction_WithoutTimestamp_UsesNow" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1130858360" result="Passed" start-time="2026-10-05 13:21:34Z" end-time="2026-10-05 13:21:35Z" duration="0.046141" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1003" name="AddInteraction_WithTwoObjectivesAndTwoCorrectResponses_WritesAllIndexes" fullname="ScormEditorBackendInteractionTests.AddInteraction_WithTwoObjectivesAndTwoCorrectResponses_WritesAllIndexes" methodname="AddInteraction_WithTwoObjectivesAndTwoCorrectResponses_WritesAllIndexes" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1532696098" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.004123" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1009" name="CommitAndTerminate_ReachTheBackend" fullname="ScormEditorBackendInteractionTests.CommitAndTerminate_ReachTheBackend" methodname="CommitAndTerminate_ReachTheBackend" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1457562942" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.001702" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1002" name="Initialize_LoadsStudentRecordFromBackend" fullname="ScormEditorBackendInteractionTests.Initialize_LoadsStudentRecordFromBackend" methodname="Initialize_LoadsStudentRecordFromBackend" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1822100586" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.002472" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1007" name="Setters_WriteInvariantNumbersAndVocabulary" fullname="ScormEditorBackendInteractionTests.Setters_WriteInvariantNumbersAndVocabulary" methodname="Setters_WriteInvariantNumbersAndVocabulary" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1847236984" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.001112" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1008" name="SuspendData_WithPipe_IsNotTruncated" fullname="ScormEditorBackendInteractionTests.SuspendData_WithPipe_IsNotTruncated" methodname="SuspendData_WithPipe_IsNotTruncated" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1892293686" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000511" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1005" name="UpdateInteraction_WithNullCollections_DoesNotThrowAndWritesFields" fullname="ScormEditorBackendInteractionTests.UpdateInteraction_WithNullCollections_DoesNotThrowAndWritesFields" methodname="UpdateInteraction_WithNullCollections_DoesNotThrowAndWritesFields" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="353363539" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.001862" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1006" name="UpdateInteraction_WritesPatternNotPattrern" fullname="ScormEditorBackendInteractionTests.UpdateInteraction_WritesPatternNotPattrern" methodname="UpdateInteraction_WritesPatternNotPattrern" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="837628202" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000704" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1010" name="ScormFormatTests" fullname="ScormFormatTests" classname="ScormFormatTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.014995" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1022" name="CustomTypeToString_DelegatesToVocabulary" fullname="ScormFormatTests.CustomTypeToString_DelegatesToVocabulary" methodname="CustomTypeToString_DelegatesToVocabulary" classname="ScormFormatTests" runstate="Runnable" seed="2110162704" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000419" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1013" name="ParseReal_IsInvariantAndTolerant" fullname="ScormFormatTests.ParseReal_IsInvariantAndTolerant" methodname="ParseReal_IsInvariantAndTolerant" classname="ScormFormatTests" runstate="Runnable" seed="488316456" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000996" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1018" name="ParseTimestamp_EmptyReturnsMinValueWithoutException" fullname="ScormFormatTests.ParseTimestamp_EmptyReturnsMinValueWithoutException" methodname="ParseTimestamp_EmptyReturnsMinValueWithoutException" classname="ScormFormatTests" runstate="Runnable" seed="2090738290" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.001345" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1019" name="ParseTimestamp_ParsesScormTimeWithFractionAndOffset" fullname="ScormFormatTests.ParseTimestamp_ParsesScormTimeWithFractionAndOffset" methodname="ParseTimestamp_ParsesScormTimeWithFractionAndOffset" classname="ScormFormatTests" runstate="Runnable" seed="102686943" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.003891" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1014" name="ParseUserReal_AcceptsDotAndCurrentCultureComma" fullname="ScormFormatTests.ParseUserReal_AcceptsDotAndCurrentCultureComma" methodname="ParseUserReal_AcceptsDotAndCurrentCultureComma" classname="ScormFormatTests" runstate="Runnable" seed="940703003" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000608" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1015" name="SecondsToTimeInterval_KeepsFractionWithDot" fullname="ScormFormatTests.SecondsToTimeInterval_KeepsFractionWithDot" methodname="SecondsToTimeInterval_KeepsFractionWithDot" classname="ScormFormatTests" runstate="Runnable" seed="2118454163" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000396" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1024" name="StringToResultType_ParsesNumericEstimateInvariant" fullname="ScormFormatTests.StringToResultType_ParsesNumericEstimateInvariant" methodname="StringToResultType_ParsesNumericEstimateInvariant" classname="ScormFormatTests" runstate="Runnable" seed="1127599756" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000355" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1023" name="StringToVocabulary_RoundTrips" fullname="ScormFormatTests.StringToVocabulary_RoundTrips" methodname="StringToVocabulary_RoundTrips" classname="ScormFormatTests" runstate="Runnable" seed="1698624128" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.001197" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1017" name="TimeInterval_RoundTrips" fullname="ScormFormatTests.TimeInterval_RoundTrips" methodname="TimeInterval_RoundTrips" classname="ScormFormatTests" runstate="Runnable" seed="586517062" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000414" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1016" name="TimeIntervalToSeconds_ParsesIsoDurations" fullname="ScormFormatTests.TimeIntervalToSeconds_ParsesIsoDurations" methodname="TimeIntervalToSeconds_ParsesIsoDurations" classname="ScormFormatTests" runstate="Runnable" seed="922373657" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000466" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1012" name="ToReal_NeverUsesExponent" fullname="ScormFormatTests.ToReal_NeverUsesExponent" methodname="ToReal_NeverUsesExponent" classname="ScormFormatTests" runstate="Runnable" seed="1558314846" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000290" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1011" name="ToReal_UsesDotDecimalSeparator" fullname="ScormFormatTests.ToReal_UsesDotDecimalSeparator" methodname="ToReal_UsesDotDecimalSeparator" classname="ScormFormatTests" runstate="Runnable" seed="542861639" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000297" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1020" name="ToTimestamp_IsScormTime" fullname="ScormFormatTests.ToTimestamp_IsScormTime" methodname="ToTimestamp_IsScormTime" classname="ScormFormatTests" runstate="Runnable" seed="746825398" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000274" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1021" name="ToVocabulary_MapsEnumsToScormTokens" fullname="ScormFormatTests.ToVocabulary_MapsEnumsToScormTokens" methodname="ToVocabulary_MapsEnumsToScormTokens" classname="ScormFormatTests" runstate="Runnable" seed="1991263802" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000463" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1025" name="ScormManifestBuilderTests" fullname="ScormManifestBuilderTests" classname="ScormManifestBuilderTests" runstate="Runnable" testcasecount="13" result="Skipped" label="Ignored" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.616440" total="13" passed="12" failed="0" inconclusive="0" skipped="1" asserts="0">
+        <properties />
+        <reason>
+          <message><![CDATA[One or more child tests were ignored]]></message>
+        </reason>
+        <test-case id="1034" name="Build_3rd_IsValidAgainst3rdEditionXsd_WhenAvailable" fullname="ScormManifestBuilderTests.Build_3rd_IsValidAgainst3rdEditionXsd_WhenAvailable" methodname="Build_3rd_IsValidAgainst3rdEditionXsd_WhenAvailable" classname="ScormManifestBuilderTests" runstate="Runnable" seed="2055685340" result="Skipped" label="Ignored" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.004487" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <reason>
+            <message><![CDATA[Plugins/2004_3rd has no XSD yet (approved temporary fallback to the 4th Edition set).]]></message>
+          </reason>
+        </test-case>
+        <test-case id="1033" name="Build_3rdAnd4th_AreValidAgainst4thEditionXsd" fullname="ScormManifestBuilderTests.Build_3rdAnd4th_AreValidAgainst4thEditionXsd" methodname="Build_3rdAnd4th_AreValidAgainst4thEditionXsd" classname="ScormManifestBuilderTests" runstate="Runnable" seed="174801477" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.248516" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1026" name="Build_3rdEdition_WritesSchemaVersionAndDecimalCompletionThreshold" fullname="ScormManifestBuilderTests.Build_3rdEdition_WritesSchemaVersionAndDecimalCompletionThreshold" methodname="Build_3rdEdition_WritesSchemaVersionAndDecimalCompletionThreshold" classname="ScormManifestBuilderTests" runstate="Runnable" seed="231541953" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.011139" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1027" name="Build_4thEdition_WritesCompletionThresholdAttributes" fullname="ScormManifestBuilderTests.Build_4thEdition_WritesCompletionThresholdAttributes" methodname="Build_4thEdition_WritesCompletionThresholdAttributes" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1452082590" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.001489" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1030" name="Build_EscapesSpecialCharacters" fullname="ScormManifestBuilderTests.Build_EscapesSpecialCharacters" methodname="Build_EscapesSpecialCharacters" classname="ScormManifestBuilderTests" runstate="Runnable" seed="5485273" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.001432" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1031" name="Build_FileHrefs_UseSlashesAreEscapedAndExcludeManifest" fullname="ScormManifestBuilderTests.Build_FileHrefs_UseSlashesAreEscapedAndExcludeManifest" methodname="Build_FileHrefs_UseSlashesAreEscapedAndExcludeManifest" classname="ScormManifestBuilderTests" runstate="Runnable" seed="2085381649" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.005551" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1032" name="Build_HasNoBomAndIsUtf8" fullname="ScormManifestBuilderTests.Build_HasNoBomAndIsUtf8" methodname="Build_HasNoBomAndIsUtf8" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1134422697" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000902" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1028" name="Build_WithoutOptionalValues_OmitsOptionalElements" fullname="ScormManifestBuilderTests.Build_WithoutOptionalValues_OmitsOptionalElements" methodname="Build_WithoutOptionalValues_OmitsOptionalElements" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1040369580" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000854" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1029" name="Build_WithTimeLimit_WritesLimitConditionsAndTimeLimitAction" fullname="ScormManifestBuilderTests.Build_WithTimeLimit_WritesLimitConditionsAndTimeLimitAction" methodname="Build_WithTimeLimit_WritesLimitConditionsAndTimeLimitAction" classname="ScormManifestBuilderTests" runstate="Runnable" seed="929212415" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.000876" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1038" name="Package_CreatesValidZipWithManifestAndXsdAtRoot" fullname="ScormManifestBuilderTests.Package_CreatesValidZipWithManifestAndXsdAtRoot" methodname="Package_CreatesValidZipWithManifestAndXsdAtRoot" classname="ScormManifestBuilderTests" runstate="Runnable" seed="277451541" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.235426" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1037" name="ResolveXsdDirectory_FallsBackTo4thWhen3rdIsMissingOrEmpty" fullname="ScormManifestBuilderTests.ResolveXsdDirectory_FallsBackTo4thWhen3rdIsMissingOrEmpty" methodname="ResolveXsdDirectory_FallsBackTo4thWhen3rdIsMissingOrEmpty" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1721861518" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.004523" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1035" name="ValidateManifest_ReportsInvalidManifest" fullname="ScormManifestBuilderTests.ValidateManifest_ReportsInvalidManifest" methodname="ValidateManifest_ReportsInvalidManifest" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1958498981" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.046645" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1036" name="ValidateManifest_ReportsUnknownNamespaceElement" fullname="ScormManifestBuilderTests.ValidateManifest_ReportsUnknownNamespaceElement" methodname="ValidateManifest_ReportsUnknownNamespaceElement" classname="ScormManifestBuilderTests" runstate="Runnable" seed="658391683" result="Passed" start-time="2026-10-05 13:21:35Z" end-time="2026-10-05 13:21:35Z" duration="0.050950" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: ./.harness/progress/editmode-results.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
