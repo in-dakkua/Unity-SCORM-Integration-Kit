@@ -1,0 +1,19 @@
+{
+  "project": "unity-scorm-integration-kit",
+  "description": "Backlog del Unity-SCORM Integration Kit.",
+  "rules": {
+    "one_feature_at_a_time": true,
+    "require_tests_to_close": "depende de verification_mode en .harness/unity.config.json",
+    "valid_status": [
+      "pending",
+      "in_progress",
+      "done",
+      "blocked"
+    ],
+    "fields": {
+      "requires_plan_approval": "bool — si true, el implementer debe esperar aprobación humana del plan antes de tocar código",
+      "requires_visual_check": "bool — si true, no se puede marcar done sin .harness/progress/visual_check_<name>.md firmado por un humano"
+    }
+  },
+  "features": []
+}

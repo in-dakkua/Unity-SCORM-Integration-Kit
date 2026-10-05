@@ -1,0 +1,32 @@
+{
+  "$schema_comment": "Hooks que automatizan la verificación. El harness los ejecuta, no el agente, así que no se pueden saltar. SessionStart dispara el protocolo de /unity-claude-code-harness automáticamente si falta config, y recuerda terminar de configurar la herramienta de automatización si quedó a medias (automation_tool_verified: false) — así no hace falta acordarse de pedirlo. A diferencia del harness genérico, aquí NO se corren tests en cada Edit/Write (Unity necesita recompilar en el Editor, lo cual es lento y a veces requiere el Editor abierto) — solo se fuerza .harness/init.sh al cerrar sesión. Todo el harness vive en .harness/ para no mezclarse con Assets/, ProjectSettings/, Packages/.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CONFIG=.harness/unity.config.json; if [ ! -f \"$CONFIG\" ]; then echo '[harness] Este proyecto Unity todavia no tiene .harness/unity.config.json. Antes de responder a nada del usuario, sigue el protocolo de /unity-claude-code-harness (ver .claude/commands/unity-claude-code-harness.md): pregunta version de Unity, rutas reales de scripts/tests, si adoptar la arquitectura existente o la de la plantilla, reglas obligatorias propias del equipo, herramienta de automatizacion Unity (incluyendo si el agente puede escribir en el Editor via MCP), y modo de verificacion. No asumas respuestas ni escribas el config sin preguntar primero.'; else TOOL=$(grep -oE '\"automation_tool\"[[:space:]]*:[[:space:]]*\"[^\"]*\"' \"$CONFIG\" | head -n1 | sed -E 's/^\"automation_tool\"[[:space:]]*:[[:space:]]*\"//; s/\"$//'); VERIFIED=$(grep -oE '\"automation_tool_verified\"[[:space:]]*:[[:space:]]*(true|false)' \"$CONFIG\" | head -n1 | sed -E 's/^\"automation_tool_verified\"[[:space:]]*:[[:space:]]*//'); if [ -n \"$TOOL\" ] && [ \"$TOOL\" != \"none\" ] && [ \"$VERIFIED\" != \"true\" ]; then echo \"[harness] automation_tool ('$TOOL') todavia no esta verificada (automation_tool_verified: false) en .harness/unity.config.json. No la uses para nada real (tests en batchmode, escribir en el Editor via MCP) hasta confirmar con el usuario que ya funciona -- ofrecele retomar el Paso 4 de /unity-claude-code-harness ('termina de configurar la herramienta de automatizacion').\"; fi; fi",
+            "description": "Si falta unity.config.json, o si la herramienta de automatización elegida no está verificada todavía, avisa al arrancar la sesión."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".harness/init.sh > /tmp/harness_init.log 2>&1 && echo '[harness] init.sh OK' || (echo '[harness] init.sh FALLÓ o tiene WARN pendientes de revisión manual — revisa /tmp/harness_init.log antes de cerrar' && cat /tmp/harness_init.log | tail -30)",
+            "description": "Antes de cerrar la sesión, fuerza una verificación completa."
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(.harness/init.sh)"
+    ]
+  }
+}

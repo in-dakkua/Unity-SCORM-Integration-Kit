@@ -1,0 +1,138 @@
+{
+  "$schema_comment": "Ejemplo de .harness/unity.config.json. Se genera respondiendo a /unity-claude-code-harness — no lo copies tal cual, cada campo debe reflejar el proyecto real del developer.",
+
+  "unity_version": "2022.3.45f1",
+  "unity_version_source": "ProjectSettings/ProjectVersion.txt",
+
+  "scripts_root": ["Assets/Scripts"],
+  "tests_root": ["Assets/Tests"],
+  "scripts_root_tests_root_comment": "SIEMPRE arrays, aunque solo tengas una ruta — pon ['Assets/Scripts'], no 'Assets/Scripts' a secas. Admiten más de un elemento si tu código vive repartido en varias carpetas (p. ej. ['Assets/Scripts', 'Assets/Template/Scripts']): el harness protege TODAS las rutas listadas por igual (el leader no edita ninguna, el reviewer las revisa todas, etc.). Cada array debe ir en UNA sola línea del JSON — .harness/init.sh lo parsea con grep/sed, no con un parser JSON real, y no puede seguir un array partido en varias líneas (si lo detecta partido, falla con FAIL explícito en vez de asumir algo). Un string plano ('Assets/Scripts') todavía se acepta por compatibilidad con configs antiguas, pero init.sh avisa con WARN pidiendo migrar a array.",
+
+  "architecture_status": "adapted_to_existing",
+  "architecture_status_options": [
+    "template_default",
+    "adapted_to_existing",
+    "custom"
+  ],
+  "architecture_notes": "El equipo ya tenía Managers/Systems/Data desde antes; .harness/docs/architecture.md se reescribió para describir esa convención en vez de Core/Gameplay/UI.",
+
+  "automation_tool": "unity_mcp_official",
+  "automation_tool_options": [
+    "unity_mcp_official",
+    "unity_mcp_coplay_oss",
+    "unity_cli",
+    "none"
+  ],
+  "automation_tool_notes": "Elegido porque el equipo ya usa Unity 6 y quiere soporte oficial. Ver .harness/docs/mcp_setup.md.",
+
+  "automation_tool_verified": false,
+  "automation_tool_verified_comment": "true SOLO cuando el mecanismo concreto de la herramienta elegida ya funciona de verdad (ver la tabla de requisitos por herramienta en .harness/docs/mcp_setup.md) — no cuando solo se eligió el nombre. Mientras sea false, .harness/init.sh avisa en cada ejecución y ningún agente debe usar la herramienta para nada real (correr tests en batchmode, invocar el Editor vía MCP, etc.) sin re-preguntar primero.",
+  "automation_tool_setup_todo": "Ej: 'falta unity_editor_path — el proyecto Unity todavía no existía cuando se corrió /unity-claude-code-harness la primera vez'. Vacío/null cuando no falta nada.",
+
+  "editor_write_policy": null,
+  "editor_write_policy_options": [
+    "agent_can_edit_via_tool",
+    "human_applies_changes",
+    "not_applicable"
+  ],
+  "editor_write_policy_comment": "SOLO relevante cuando automation_tool es un MCP (unity_mcp_official / unity_mcp_coplay_oss), que sí puede escribir en el Editor en vivo. 'agent_can_edit_via_tool': el agente puede crear/modificar GameObjects, escenas y prefabs a través del MCP cuando el plan esté aprobado (el visual check humano sigue siendo obligatorio igual). 'human_applies_changes': el agente NUNCA escribe en escenas/prefabs, ni siquiera vía MCP — solo escribe código C# y deja instrucciones paso a paso para que la persona conecte todo en el Editor. 'not_applicable': automation_tool es unity_cli/none, donde esta pregunta no aplica (unity_cli no manipula el Editor en vivo; sin herramienta no hay nada que escribir en el Editor). No dejes esto en null si elegiste un MCP — pregúntalo explícitamente en /unity-claude-code-harness.",
+
+  "verification_mode": "hybrid",
+  "verification_mode_options": ["strict_tdd", "plan_and_visual", "hybrid"],
+
+  "requires_plan_approval_default": true,
+  "requires_visual_check_default": true,
+
+  "unity_editor_path": null,
+  "unity_editor_path_notes": "Ruta al ejecutable de Unity. Obligatoria en la práctica si automation_tool es 'unity_cli' (si no, automation_tool_verified debe quedar en false) — opcional para el resto, pero si se rellena, init.sh también la usa para correr tests en batchmode. Si es null, init.sh solo avisa que hay que correr los tests manualmente desde el Editor.",
+
+  "unity_dev_skills_enabled": true,
+  "unity_dev_skills_enabled_comment": "Registro informativo (Paso 4B de /unity-claude-code-harness) de si el developer quiso conservar el pack de 5 skills de Unity/C# bundled en .claude/skills/ (ver .harness/docs/unity_dev_skills.md). Si es false, esos ficheros ya se borraron durante /unity-claude-code-harness. Ningún otro archivo del harness depende de este campo para funcionar — es solo para no reinstalarlos por accidente y documentar la preferencia del equipo.",
+
+  "vcs_provider": "github",
+  "vcs_provider_options": ["github", "unity_vcs_plastic", "none"],
+  "vcs_provider_notes": "Elegido en /unity-claude-code-harness Paso 5B. Ver .harness/docs/vcs_policy.md para el detalle de cada proveedor.",
+
+  "vcs_verified": false,
+  "vcs_verified_comment": "Mismo patrón que automation_tool_verified: true SOLO cuando el CLI del proveedor elegido ya está de verdad autenticado/conectado ('gh auth status' para github, cliente 'cm' conectado al servidor para unity_vcs_plastic — ver la tabla en .harness/docs/vcs_policy.md). Mientras sea false, .harness/init.sh avisa y ningún agente debe ejecutar ninguna acción de escritura de control de versiones (ni siquiera commit_local) sin reconfirmar con el humano.",
+  "vcs_setup_todo": "Ej: 'falta gh auth login — todavía no se autenticó en esta máquina'. Vacío/null cuando no falta nada.",
+
+  "vcs_rules_source": "harness_common",
+  "vcs_rules_source_options": ["harness_common", "repo_detected", "custom"],
+  "vcs_rules_source_comment": "harness_common: usa tal cual la tabla de .harness/docs/vcs_policy.md. repo_detected: el leader relee en vivo las reglas reales del repo antes de cada acción sensible (branch protection/CODEOWNERS en GitHub; en Plastic degrada a preguntar al humano, sus ACLs no son legibles localmente) — no se cachea nada de esto aquí. custom: se preguntó acción por acción en /unity-claude-code-harness y las respuestas que se apartan del default quedan en vcs_permissions de abajo.",
+
+  "vcs_permissions": {
+    "commit_local": "allowed",
+    "create_branch": "allowed",
+    "push": "requires_approval",
+    "open_pr_or_merge_request": "requires_approval",
+    "merge_or_checkin_to_protected_branch": "requires_approval",
+    "delete_branch": "requires_approval",
+    "force_push_or_rewrite_history": "forbidden"
+  },
+  "vcs_permissions_comment": "Overrides sobre la tabla base de .harness/docs/vcs_policy.md — solo hace falta listar las acciones que se apartan del default de harness_common, no las 9 completas. create_tag y merge_into_release_or_main NO aparecen aquí a propósito: con release_guideline invelon_rm_v3 su default es 'forbidden', y escribirlas aquí (aunque sea con el valor base) anula ese default. Añádelas solo si el developer decide desviarse explícitamente. Valores válidos: allowed | requires_approval | forbidden. IMPORTANTE: a diferencia de scripts_root/tests_root, este objeto NO lo valida .harness/init.sh en profundidad (su parser es grep/sed, no JSON real) más allá de comprobar que vcs_provider/vcs_verified son coherentes — la responsabilidad de respetar esta tabla es del leader, siguiendo .harness/docs/vcs_policy.md antes de cada acción de escritura.",
+
+  "release_guideline": "invelon_rm_v3",
+  "release_guideline_options": ["invelon_rm_v3", "none"],
+  "release_guideline_comment": "invelon_rm_v3: el proyecto sigue la guideline corporativa '[GUIDELINE] Tech Release Management Architecture' v3.0 en lo que afecta al agente (versiones, nombres, ramas, tarea de release en Asana). Ver .harness/docs/release_management.md. none: nada de esa guía es obligatorio para el agente. Se decide en /unity-claude-code-harness Paso 5C.",
+
+  "release_app_name": "DiputacioLleidaVR",
+  "release_project_code": "DIPLLEIDA",
+  "release_platforms": ["META", "PICO"],
+  "release_naming_comment": "release_app_name = {AppName} del nombre de artefacto ({AppName}_{PLATFORM}_v{X.Y.Z}+{BUILD}_{ENV}.apk), sin espacios. release_project_code = el [PROYECTO] del nombre de la tarea de release en Asana ('[PROYECTO] Release vX.Y.Z — desc'). release_platforms = códigos {PLATFORM} de los artefactos; array en UNA sola línea.",
+
+  "release_current_version": "1.4.2",
+  "release_current_version_comment": "MAJOR.MINOR.PATCH de la release en curso, decidido por el encargado del proyecto (nunca por el agente). Si está relleno, .harness/init.sh avisa si no coincide con bundleVersion de ProjectSettings/ProjectSettings.asset. null si todavía no hay release planificada.",
+
+  "release_ci_cd": "enabled",
+  "release_ci_cd_options": ["enabled", "manual_builds", "unknown"],
+  "release_ci_cd_comment": "Informativo: lo decide DevOps al inicio del proyecto (§3.6 de la guideline). enabled = BUILD_NUMBER y versionCode los pone CI. manual_builds = no hay CI; toda build usa el sufijo +YYMMDD-HHMM. El harness no se conecta al pipeline en ningún caso.",
+
+  "release_asana_releases_project_gid": null,
+  "release_asana_project_gid": null,
+  "release_asana_comment": "gid del proyecto global 'Releases' de Asana y del proyecto específico: la tarea de release va en los DOS (multi-homing). Es independiente del modo del backlog (.harness/feature_source.json): funciona aunque el backlog sea local. Resuélvelos con el MCP de Asana, no los escribas de memoria. null si todavía no se configuró.",
+
+  "branch_main": "main",
+  "branch_release": "release",
+  "branch_dev": "dev",
+  "branch_personal_pattern": "user/<ad_user>",
+  "branch_feature_pattern": "feature/<feature>",
+  "branch_hotfix_pattern": "hotfix/<X.Y.Z>-<desc>",
+  "branch_comment": "Valores para Git/GitHub (este ejemplo usa vcs_provider github): Git no admite 'dev' y 'dev/<algo>' a la vez, por eso las personales van en user/. Con Plastic (unity_vcs_plastic) usa los literales de la guideline: /main, /release, /dev, /dev/<ad_user>, /dev/<feature>, /hotfix/<X.Y.Z>-<desc>. <ad_user> es el usuario de Active Directory de quien trabaja; no se guarda aquí, el leader lo pregunta. Ver .harness/docs/release_management.md §3.",
+
+  "deploy_enabled": false,
+  "deploy_enabled_comment": "Paso 5C de /unity-claude-code-harness. false = el módulo de despliegue (.harness/deploy, /deploy) no existe para este proyecto. Ver .harness/docs/deploy_pipeline.md. Si es false, el resto de claves deploy_* se ignoran.",
+  "deploy_platforms": ["android", "ios"],
+  "deploy_mode": "build_and_upload",
+  "deploy_mode_options": ["build_only", "build_and_upload"],
+  "deploy_project_id": "cliente-miapp",
+  "deploy_project_id_comment": "[A-Za-z0-9._-]. Nombra los secretos del Credential Manager (harness/<id>/...) y los jobs de build.",
+
+  "deploy_android_keystore_path": "C:/Users/<usuario>/.harness-secrets/cliente-miapp/upload.keystore",
+  "deploy_android_key_alias": "upload",
+  "deploy_android_keystore_owner": "cliente",
+  "deploy_android_keystore_owner_options": ["cliente", "nosotros"],
+  "deploy_android_secret_prefix": "harness/cliente-miapp",
+  "deploy_android_play_json_path": "C:/Users/<usuario>/.harness-secrets/cliente-miapp/play-service-account.json",
+  "deploy_android_package": null,
+  "deploy_android_comment": "SOLO referencias, nunca valores: el keystore y el JSON viven FUERA del proyecto (init.sh da FAIL si una ruta cae dentro) y las contraseñas en el Windows Credential Manager (setup_secrets.ps1, lo ejecuta el humano). deploy_android_package null = se usa el applicationIdentifier de Unity.",
+
+  "deploy_ios_mac_host": null,
+  "deploy_ios_mac_ip": "192.168.101.148",
+  "deploy_ios_mac_user": "development",
+  "deploy_ios_ssh_key_path": "~/.ssh/harness_mac",
+  "deploy_ios_mac_host_fingerprint": "SHA256:CFVJSQiqNS/j/SBvO+sqq72ImWZV8JyRSOGXdh1Orrs",
+  "deploy_ios_team_id": "ABCDE12345",
+  "deploy_ios_comment": "Valores del Mac compartido de la oficina: el Paso 5C los propone desde .harness/deploy/office_mac.json y solo se copian aqui si el developer los confirma. deploy_ios_mac_host (nombre .local) es opcional. El Mac solo tiene Xcode/CocoaPods/fastlane (sin Unity) y hace archive + firma + TestFlight por SSH. Se prueba primero el nombre y después la IP (mDNS no cruza subredes). La huella ED25519 se compara con known_hosts en cada doctor. Configuración del Mac: .harness/deploy/mac/SETUP.md.",
+
+  "deploy_android_verified": false,
+  "deploy_ios_verified": false,
+  "deploy_verified_comment": "Mismo patrón que automation_tool_verified: true SOLO cuando ese camino ha funcionado de verdad en este proyecto (build firmado y, si deploy_mode es build_and_upload, subida). Mientras sea false, init.sh avisa y /deploy lo dice antes de empezar.",
+  "deploy_setup_todo": null,
+
+  "deploy_permissions": {},
+  "deploy_permissions_comment": "Overrides sobre la tabla de .harness/docs/deploy_pipeline.md (build_local: allowed, install_test_device: allowed, upload_internal_testing: requires_approval, promote_to_production: forbidden). promote_to_production solo admite 'forbidden': init.sh da FAIL con cualquier otro valor, y no existe ningún camino a producción en el código.",
+
+  "configured_by": "nombre.apellido@empresa.com",
+  "configured_at": "2026-09-08"
+}
