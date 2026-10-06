@@ -7,13 +7,32 @@
 ## Estructura real
 
 ```
-Assets/SCORM/
-├─ _Scripts/   runtime: ScormManager, ScormAPIWrapper, ControllerMain,
-│              StudentRecord, AnObjective
-├─ Editor/     ScormExport.cs (exportación de paquete SCORM, solo Editor)
-├─ Plugins/    Ionic.Zip.Reduced.dll, 2004/ (terceros — NO editar)
-├─ Resources/  _Prefabs/  _Scenes/  _Images/  WebPlayerTemplates/
+Assets/
+├─ Plugins/scorm.jslib          puente síncrono C# <-> scorm.js (WebGL)
+├─ WebGLTemplates/SCORM/        plantilla WebGL: index.html, TemplateData/scorm.js,
+│                               ScormSimulator.js (?scormsim=1)
+└─ SCORM/
+   ├─ _Scripts/   runtime del kit: ScormManager (API pública, UpsertObjective,
+   │              RecordInteraction, UpdateScore...), ScormAPIWrapper, ScormFormat,
+   │              ScormEditorBackend, StudentRecord, ScormCallInfo..., ControllerMain/
+   │              AnObjective (UI de TestApp)
+   ├─ Editor/     exportador y CLI: ScormExport, ScormBuildCli, ScormPackager,
+   │              ScormManifestBuilder, ScormPackageSettings, ScormEdition
+   ├─ Demo/       plantilla multi-escenario + demo (F003)
+   │  ├─ Runtime/   PLANTILLA reutilizable: ScenarioDefinition, ScenarioCatalog,
+   │  │             ScenarioTracker, host. Sin dependencia de DemoUI.
+   │  ├─ DemoUI/    UI de demo (uGUI, textos en español vía DemoTexts), log visual
+   │  ├─ Data/      ScenarioDefinition/ScenarioCatalog de ejemplo
+   │  ├─ Editor/    ScenarioDemoSceneBuilder (genera ScenarioDemo.unity)
+   │  └─ ScenarioDemo.unity, README.md
+   ├─ Tests/Editor/  tests EditMode (sin asmdef; ver F004)
+   ├─ Plugins/2004_4th/ (2004_3rd/ pendiente)  XSD — terceros, NO editar
+   └─ Resources/  _Prefabs/  _Scenes/(TestApp)  _Images/
 ```
+
+Regla de capas: `DemoUI` -> `Demo/Runtime` -> `ScormManager`. `Demo/Runtime`
+no conoce la UI; el proyecto final reutiliza `Demo/Runtime` (o lo mueve a su
+propio módulo) y sustituye `DemoUI`.
 
 ## Principios
 
@@ -22,16 +41,16 @@ Assets/SCORM/
    `StudentRecord`/`AnObjective` son datos; no deben conocer la UI.
 2. **Código de Editor solo en `Assets/SCORM/Editor/`.** Nada de
    `UnityEditor` en `_Scripts` sin `#if UNITY_EDITOR`.
-3. **No editar `Plugins/`** ni los `WebPlayerTemplates` sin plan aprobado:
+3. **No editar `Plugins/`** ni los `WebGLTemplates`/`scorm.jslib` sin plan aprobado:
    son piezas de integración con el LMS/navegador.
 4. **Compatibilidad WebGL.** El kit se despliega a WebGL; evitar APIs no
    soportadas (hilos, sockets, `System.IO` de disco) en runtime.
 5. **Errores explícitos**: sin `Debug.Log` como manejo de errores; fallos
    de comunicación con el LMS se reportan por valor de retorno o excepción
    con contexto.
-6. **Migración Unity 5 → Unity 6**: el proyecto conserva APIs antiguas
-   (`Application.ExternalCall`, `WebPlayerTemplates`). Cualquier cambio de
-   API obsoleta es una feature propia, no un efecto colateral.
+6. **Puente síncrono**: toda llamada SCORM pasa por `ScormAPIWrapper` (jslib
+   en WebGL, `ScormEditorBackend` en Editor). Nada de `Application.ExternalCall`,
+   `SendMessage` desde JS ni hilos (migración completada en F001).
 
 ## Qué NO hacer
 

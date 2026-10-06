@@ -31,10 +31,16 @@
 /*******************************************************************************
 ** Usage: Creates javacript object to simulate SCORM LMS. Uncomment lines at bottom for proper LMS version.
 **      functions as follows:
-**      Will not actually save data anywhere or do error checking - just use this when testing locally to ensure that the 
-**		system will sucessfully initialize
+**      No error checking. A suspended attempt (cmi.exit = "suspend") is kept in localStorage and resumed on the next
+**      launch (cmi.entry = "resume"); open the page with ?scormsimreset=1 to forget it. Use it when testing locally to
+**      ensure that the system will successfully initialize.
 **
 *******************************************************************************/
+function scormSimulatorStorageKey()
+{
+	return "ScormSimulator:" + window.location.pathname;
+}
+
 function ScormSimulator()
 {
 	
@@ -124,6 +130,29 @@ function ScormSimulator()
             this.data["cmi.time_limit_action"] = "continue,no message";
             this.data["cmi.total_time"] = "P0DT0H27M10S";
 
+			// Resume a suspended simulated attempt (see Terminate). ?scormsimreset=1 forgets it.
+			try
+			{
+				var key = scormSimulatorStorageKey();
+				if (/(^|[?&])scormsimreset=1(&|$)/.test(window.location.search.substring(1)))
+					window.localStorage.removeItem(key);
+				var saved = window.localStorage.getItem(key);
+				if (saved)
+				{
+					var restored = JSON.parse(saved);
+					if (restored && typeof restored === "object")
+					{
+						this.data = restored;
+						this.data["cmi.entry"] = "resume";
+						delete this.data["cmi.exit"];
+						delete this.data["cmi.session_time"];
+					}
+				}
+			}
+			catch (e)
+			{
+				if (window.console && console.warn) console.warn("[SCORM] ScormSimulator: localStorage not available, no resume.", e);
+			}
 	
 		return "true";
 	}
@@ -160,6 +189,20 @@ function ScormSimulator()
 	
 	this.Terminate = function(s)
 	{
+		// Like an LMS: exit = "suspend" keeps the attempt for the next launch (stored in localStorage, per page path);
+		// any other exit ends it, so the next launch starts a new attempt from the seed data.
+		try
+		{
+			var key = scormSimulatorStorageKey();
+			if (this.data && this.data["cmi.exit"] === "suspend")
+				window.localStorage.setItem(key, JSON.stringify(this.data));
+			else
+				window.localStorage.removeItem(key);
+		}
+		catch (e)
+		{
+			if (window.console && console.warn) console.warn("[SCORM] ScormSimulator: could not save the attempt.", e);
+		}
 	    return "true";
 	}
 	this.LMSFinish = this.Terminate;

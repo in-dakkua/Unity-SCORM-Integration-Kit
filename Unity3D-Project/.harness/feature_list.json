@@ -55,7 +55,7 @@
     {
       "id": "F003",
       "name": "scorm-scenario-demo",
-      "status": "pending",
+      "status": "in_progress",
       "description": "Demo + plantilla de partida: escena con UI para jugar escenarios simulados con datos aleatorios, cálculo de nota global, persistencia/reanudación y log visual de todas las llamadas SCORM. Base para el proyecto final.",
       "acceptance": [
         "Código de plantilla reutilizable separado de la UI de demo: definición de escenarios por ScriptableObject (id, título, peso, puntuación máxima, umbral de aprobado), servicio tracker sobre la API de F002 (empezar escenario, registrar decisiones como interacciones, completar con nota, política mejor/última, nota global ponderada en cmi.score.*, success/completion global, progress_measure, suspend_data JSON versionado, commit, exit suspend/normal).",
@@ -68,6 +68,19 @@
       "requires_plan_approval": false,
       "requires_visual_check": true,
       "notes": "Plan approval eximida por el humano en chat 2026-10-06. Escena generada por código en batchmode (sin MCP)."
+    },
+    {
+      "id": "F004",
+      "name": "scorm-assembly-definitions",
+      "status": "pending",
+      "description": "Hallazgo B3 de la review F003: asmdefs para runtime del kit, Editor, Demo/Runtime, DemoUI y Tests (requiere mover tests a un asmdef que referencie los asmdefs nuevos en vez de Assembly-CSharp).",
+      "acceptance": [
+        "asmdefs separados con dependencias DemoUI->Demo.Runtime->Scorm.Runtime; Editor solo plataforma Editor",
+        "Tests en asmdef de test referenciando los nuevos; init.sh verde",
+        "Build WebGL y zip sin regresión"
+      ],
+      "requires_plan_approval": true,
+      "requires_visual_check": false
     }
   ]
 }
