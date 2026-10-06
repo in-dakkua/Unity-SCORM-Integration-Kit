@@ -133,7 +133,7 @@ public class AnObjective : MonoBehaviour {
 	/// <param name="value">Value of the Score Min Input Field.</param>
 	public void OnMinEndEdit (string value) {
 		if (!isInitialising) {
-			data.score.min = float.Parse (value);
+			data.score.min = ScormFormat.ParseUserReal (value);
 			ScormManager.UpdateObjective (index, data);
 		}
 	}
@@ -145,7 +145,7 @@ public class AnObjective : MonoBehaviour {
 	/// <param name="value">Value of the Score Max Input Field.</param>
 	public void OnMaxEndEdit (string value) {
 		if (!isInitialising) {
-			data.score.max = float.Parse (value);
+			data.score.max = ScormFormat.ParseUserReal (value);
 			ScormManager.UpdateObjective (index, data);
 		}
 	}
@@ -157,8 +157,8 @@ public class AnObjective : MonoBehaviour {
 	/// <param name="value">Value of the Score Raw Input Field.</param>
 	public void OnRawEndEdit (string value) {
 		if (!isInitialising) {
-			data.score.raw = float.Parse (value);
-			data.score.scaled = float.Parse (value) / data.score.max;
+			data.score.raw = ScormFormat.ParseUserReal (value);
+			data.score.scaled = Mathf.Approximately(data.score.max, 0f) ? 0f : Mathf.Clamp(data.score.raw / data.score.max, -1f, 1f);
 			ScormManager.UpdateObjective (index, data);
 		}
 	}

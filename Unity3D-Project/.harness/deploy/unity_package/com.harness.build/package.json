@@ -1,0 +1,8 @@
+{
+  "name": "com.harness.build",
+  "displayName": "Harness Build (CLI)",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "description": "Punto de entrada de build en batchmode para el modulo de despliegue del harness (.harness/deploy). Solo Editor: no se incluye en el juego.",
+  "author": { "name": "unity-claude-code-harness" }
+}

@@ -1,0 +1,22 @@
+# Fastfile del Mac de builds (~/harness/fastlane/Fastfile). Lo invoca mac_build.sh.
+# Solo iOS: Android se sube desde Windows con .harness/deploy/fastlane/Fastfile.
+# Todos los valores llegan por variables de entorno H_* (nunca interpolados
+# en la linea de comandos). No existe ninguna lane de produccion: promocionar
+# a produccion lo hace un humano desde App Store Connect.
+
+default_platform(:ios)
+
+platform :ios do
+  lane :ios_testflight do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("H_KEY_ID"),
+      issuer_id: ENV.fetch("H_ISSUER_ID"),
+      key_filepath: ENV.fetch("H_KEY_PATH")
+    )
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: ENV.fetch("H_IPA"),
+      skip_waiting_for_build_processing: true
+    )
+  end
+end

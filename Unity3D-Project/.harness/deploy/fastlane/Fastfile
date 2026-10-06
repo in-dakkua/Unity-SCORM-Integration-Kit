@@ -1,0 +1,27 @@
+# Fastfile de Windows (.harness/deploy/fastlane/Fastfile). Solo Android: iOS
+# se compila y sube desde el Mac (.harness/deploy/mac/). Lo invoca
+# .harness/deploy/deploy.ps1 y nunca se lanza a mano para produccion.
+#
+# Todos los valores llegan por variables de entorno H_* (nunca interpolados
+# en la linea de comandos). No existe ninguna lane de produccion: la unica
+# pista posible es "internal". Promocionar a produccion lo hace un humano
+# desde Play Console.
+
+default_platform(:android)
+
+platform :android do
+  lane :android_internal do
+    upload_to_play_store(
+      json_key: ENV.fetch("H_JSON"),
+      package_name: ENV.fetch("H_PACKAGE"),
+      aab: ENV.fetch("H_AAB"),
+      track: "internal",
+      release_status: ENV.fetch("H_STATUS", "completed"),
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+end

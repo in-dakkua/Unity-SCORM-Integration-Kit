@@ -1,2 +1,15 @@
 .vs
 
+
+# Unity (proyecto en Unity3D-Project/)
+Unity3D-Project/[Ll]ibrary/
+Unity3D-Project/[Tt]emp/
+Unity3D-Project/[Oo]bj/
+Unity3D-Project/[Ll]ogs/
+Unity3D-Project/[Uu]ser[Ss]ettings/
+Unity3D-Project/[Bb]uilds/
+Unity3D-Project/[Mm]emoryCaptures/
+Unity3D-Project/*.csproj
+Unity3D-Project/*.unityproj
+Unity3D-Project/*.sln
+Unity3D-Project/*.userprefs

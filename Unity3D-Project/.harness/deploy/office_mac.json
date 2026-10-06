@@ -1,0 +1,7 @@
+{
+  "_comment": "Mac de builds iOS compartido de la oficina. Son valores PROPUESTOS por defecto: el Paso 5C de /unity-claude-code-harness los ofrece a cada developer y los copia a .harness/unity.config.json del proyecto solo si los confirma. deploy.ps1 NO lee este fichero: la config de cada proyecto es la unica fuente. Aqui no va ningun secreto ni ningun dato de equipos de Apple o de clientes. Si el Mac cambia de IP o se reinstala (cambia la huella), actualiza este fichero en la plantilla del harness.",
+  "deploy_ios_mac_ip": "192.168.101.148",
+  "deploy_ios_mac_user": "development",
+  "deploy_ios_mac_host_fingerprint": "SHA256:CFVJSQiqNS/j/SBvO+sqq72ImWZV8JyRSOGXdh1Orrs",
+  "deploy_ios_ssh_key_path": "~/.ssh/harness_mac"
+}

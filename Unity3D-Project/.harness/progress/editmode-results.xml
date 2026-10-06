@@ -1,0 +1,899 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="104" result="Skipped:Ignored" total="104" passed="103" failed="0" inconclusive="0" skipped="1" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-06 12:31:46Z" end-time="2026-10-06 12:31:48Z" duration="2,8763525">
+  <test-suite type="TestSuite" id="1000" name="SCORM Testbed" fullname="SCORM Testbed" runstate="Runnable" testcasecount="104" result="Skipped" label="Ignored" start-time="2026-10-06 12:31:46Z" end-time="2026-10-06 12:31:48Z" duration="2.876353" total="104" passed="103" failed="0" inconclusive="0" skipped="1" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <reason>
+      <message><![CDATA[One or more child tests were ignored]]></message>
+    </reason>
+    <test-suite type="Assembly" id="1112" name="Assembly-CSharp-Editor.dll" fullname="D:/Dev/Github/Unity-SCORM-Integration-Kit/Unity3D-Project/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="104" result="Skipped" label="Ignored" start-time="2026-10-06 12:31:46Z" end-time="2026-10-06 12:31:48Z" duration="2.480343" total="104" passed="103" failed="0" inconclusive="0" skipped="1" asserts="0">
+      <properties>
+        <property name="_PID" value="5104" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <reason>
+        <message><![CDATA[One or more child tests were ignored]]></message>
+      </reason>
+      <test-suite type="TestFixture" id="1001" name="ScenarioDemoSceneTests" fullname="ScenarioDemoSceneTests" classname="ScenarioDemoSceneTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-06 12:31:46Z" end-time="2026-10-06 12:31:47Z" duration="0.986690" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1002" name="BuildSettings_ScenarioDemoFirstAndTestAppKept" fullname="ScenarioDemoSceneTests.BuildSettings_ScenarioDemoFirstAndTestAppKept" methodname="BuildSettings_ScenarioDemoFirstAndTestAppKept" classname="ScenarioDemoSceneTests" runstate="Runnable" seed="12650118" result="Passed" start-time="2026-10-06 12:31:40Z" end-time="2026-10-06 12:31:40Z" duration="0.043374" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1003" name="ExampleCatalog_IsValidWithStableIds" fullname="ScenarioDemoSceneTests.ExampleCatalog_IsValidWithStableIds" methodname="ExampleCatalog_IsValidWithStableIds" classname="ScenarioDemoSceneTests" runstate="Runnable" seed="1302909270" result="Passed" start-time="2026-10-06 12:31:40Z" end-time="2026-10-06 12:31:40Z" duration="0.030091" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1005" name="PlayMode_SceneStartsTrackerAndRandomPlayCompletesAScenario" fullname="ScenarioDemoSceneTests.PlayMode_SceneStartsTrackerAndRandomPlayCompletesAScenario" methodname="PlayMode_SceneStartsTrackerAndRandomPlayCompletesAScenario" classname="ScenarioDemoSceneTests" runstate="Runnable" seed="1232422519" result="Passed" start-time="2026-10-06 12:31:40Z" end-time="2026-10-06 12:31:47Z" duration="6.379537" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[SCORM] SetValue cmi.objectives.2.id = "scenario-02" -> "true"
+[SCORM] SetValue cmi.objectives.2.completion_status = "incomplete" -> "true"
+[SCORM] SetValue cmi.objectives.2.description = "Consignar una máquina antes de una intervención de mantenimiento. Nota sobre 10." -> "true"
+[SCORM] SetValue cmi.location = "scenario-02" -> "true"
+[SCORM] SetValue cmi.suspend_data = "{"v":1,"cur":"scenario-02","s":[{"id":"scenario-02","n":0,"b":0.0,"l":0.0,"p":1,"t0":1791289906,"t1":0,"a":1,"d":0}]}" -> "true"
+[SCORM] SetValue cmi.interactions.1.id = "scenario-02-a1-d1" -> "true"
+[SCORM] SetValue cmi.interactions.1.type = "true-false" -> "true"
+[SCORM] SetValue cmi.interactions.1.objectives.0.id = "scenario-02" -> "true"
+[SCORM] SetValue cmi.interactions.1.timestamp = "2026-10-06T14:31:46" -> "true"
+[SCORM] SetValue cmi.interactions.1.correct_responses.0.pattern = "true" -> "true"
+[SCORM] SetValue cmi.interactions.1.weighting = "1" -> "true"
+[SCORM] SetValue cmi.interactions.1.learner_response = "true" -> "true"
+[SCORM] SetValue cmi.interactions.1.result = "correct" -> "true"
+[SCORM] SetValue cmi.interactions.1.latency = "P0DT0H0M17.4S" -> "true"
+[SCORM] SetValue cmi.interactions.1.description = "Bloqueo y etiquetado (LOTO): decisión 1 (verdadero/falso)" -> "true"
+[SCORM] SetValue cmi.interactions.2.id = "scenario-02-a1-d2" -> "true"
+[SCORM] SetValue cmi.interactions.2.type = "choice" -> "true"
+[SCORM] SetValue cmi.interactions.2.objectives.0.id = "scenario-02" -> "true"
+[SCORM] SetValue cmi.interactions.2.timestamp = "2026-10-06T14:31:46" -> "true"
+[SCORM] SetValue cmi.interactions.2.correct_responses.0.pattern = "opt-a" -> "true"
+[SCORM] SetValue cmi.interactions.2.weighting = "1" -> "true"
+[SCORM] SetValue cmi.interactions.2.learner_response = "opt-a" -> "true"
+[SCORM] SetValue cmi.interactions.2.result = "correct" -> "true"
+[SCORM] SetValue cmi.interactions.2.latency = "P0DT0H0M14.6S" -> "true"
+[SCORM] SetValue cmi.interactions.2.description = "Bloqueo y etiquetado (LOTO): decisión 2 (elección múltiple)" -> "true"
+[SCORM] SetValue cmi.interactions.3.id = "scenario-02-a1-d3" -> "true"
+[SCORM] SetValue cmi.interactions.3.type = "true-false" -> "true"
+[SCORM] SetValue cmi.interactions.3.objectives.0.id = "scenario-02" -> "true"
+[SCORM] SetValue cmi.interactions.3.timestamp = "2026-10-06T14:31:46" -> "true"
+[SCORM] SetValue cmi.interactions.3.correct_responses.0.pattern = "true" -> "true"
+[SCORM] SetValue cmi.interactions.3.weighting = "1" -> "true"
+[SCORM] SetValue cmi.interactions.3.learner_response = "true" -> "true"
+[SCORM] SetValue cmi.interactions.3.result = "correct" -> "true"
+[SCORM] SetValue cmi.interactions.3.latency = "P0DT0H0M3S" -> "true"
+[SCORM] SetValue cmi.interactions.3.description = "Bloqueo y etiquetado (LOTO): decisión 3 (verdadero/falso)" -> "true"
+[SCORM] SetValue cmi.interactions.4.id = "scenario-02-a1-d4" -> "true"
+[SCORM] SetValue cmi.interactions.4.type = "choice" -> "true"
+[SCORM] SetValue cmi.interactions.4.objectives.0.id = "scenario-02" -> "true"
+[SCORM] SetValue cmi.interactions.4.timestamp = "2026-10-06T14:31:46" -> "true"
+[SCORM] SetValue cmi.interactions.4.correct_responses.0.pattern = "opt-c" -> "true"
+[SCORM] SetValue cmi.interactions.4.weighting = "1" -> "true"
+[SCORM] SetValue cmi.interactions.4.learner_response = "opt-c" -> "true"
+[SCORM] SetValue cmi.interactions.4.result = "correct" -> "true"
+[SCORM] SetValue cmi.interactions.4.latency = "P0DT0H0M15S" -> "true"
+[SCORM] SetValue cmi.interactions.4.description = "Bloqueo y etiquetado (LOTO): decisión 4 (elección múltiple)" -> "true"
+[SCORM] SetValue cmi.interactions.5.id = "scenario-02-a1-d5" -> "true"
+[SCORM] SetValue cmi.interactions.5.type = "true-false" -> "true"
+[SCORM] SetValue cmi.interactions.5.objectives.0.id = "scenario-02" -> "true"
+[SCORM] SetValue cmi.interactions.5.timestamp = "2026-10-06T14:31:46" -> "true"
+[SCORM] SetValue cmi.interactions.5.correct_responses.0.pattern = "false" -> "true"
+[SCORM] SetValue cmi.interactions.5.weighting = "1" -> "true"
+[SCORM] SetValue cmi.interactions.5.learner_response = "false" -> "true"
+[SCORM] SetValue cmi.interactions.5.result = "correct" -> "true"
+[SCORM] SetValue cmi.interactions.5.latency = "P0DT0H0M16.7S" -> "true"
+[SCORM] SetValue cmi.interactions.5.description = "Bloqueo y etiquetado (LOTO): decisión 5 (verdadero/falso)" -> "true"
+[SCORM] SetValue cmi.objectives.2.score.min = "0" -> "true"
+[SCORM] SetValue cmi.objectives.2.score.max = "10" -> "true"
+[SCORM] SetValue cmi.objectives.2.score.raw = "9.8" -> "true"
+[SCORM] SetValue cmi.objectives.2.score.scaled = "0.98" -> "true"
+[SCORM] SetValue cmi.objectives.2.success_status = "passed" -> "true"
+[SCORM] SetValue cmi.objectives.2.completion_status = "completed" -> "true"
+[SCORM] SetValue cmi.objectives.2.progress_measure = "1" -> "true"
+[SCORM] SetValue cmi.score.raw = "21.78" -> "true"
+[SCORM] SetValue cmi.score.scaled = "0.2178" -> "true"
+[SCORM] SetValue cmi.progress_measure = "0.2" -> "true"
+[SCORM] SetValue cmi.suspend_data = "{"v":1,"cur":"scenario-02","s":[{"id":"scenario-02","n":1,"b":9.800000190734864,"l":9.800000190734864,"p":0,"t0":1791289906,"t1":1791289906,"a":1,"d":0}]}" -> "true"
+[SCORM] Commit -> "true"
+[SCORM] SetValue cmi.session_time = "P0DT0H0M1.13S" -> "true"
+[SCORM] SetValue cmi.exit = "suspend" -> "true"
+[SCORM] Commit -> "true"
+[SCORM] Terminate -> "true"
+[SCORM] Initialize -> "true"
+[SCORM] GetValue cmi._version -> "1.0"
+[SCORM] GetValue cmi.comments_from_learner._count -> "1"
+[SCORM] GetValue cmi.comments_from_learner.0.comment -> "An example comment from learner"
+[SCORM] GetValue cmi.comments_from_learner.0.location -> "Location 1"
+[SCORM] GetValue cmi.comments_from_learner.0.timestamp -> "2015-09-07T09:00:00"
+[SCORM] GetValue cmi.comments_from_lms._count -> "1"
+[SCORM] GetValue cmi.comments_from_lms.0.comment -> "test comment from LMS"
+[SCORM] GetValue cmi.comments_from_lms.0.location -> "test location string"
+[SCORM] GetValue cmi.comments_from_lms.0.timestamp -> "2014-09-07T09:00:00"
+[SCORM] GetValue cmi.completion_status -> "incomplete"
+[SCORM] GetValue cmi.completion_threshold -> "0.9"
+[SCORM] GetValue cmi.credit -> "credit"
+[SCORM] GetValue cmi.entry -> "resume"
+[SCORM] GetValue cmi.interactions._count -> "6"
+[SCORM] GetValue cmi.interactions.0.id -> "urn:STALS:interaction-id-0"
+[SCORM] GetValue cmi.interactions.0.type -> "true-false"
+[SCORM] GetValue cmi.interactions.0.timestamp -> "2015-09-07T09:00:00"
+[SCORM] GetValue cmi.interactions.0.weighting -> "1.0"
+[SCORM] GetValue cmi.interactions.0.learner_response -> "false"
+[SCORM] GetValue cmi.interactions.0.latency -> "P0DT0H2M18S"
+[SCORM] GetValue cmi.interactions.0.description -> "Interaction description"
+[SCORM] GetValue cmi.interactions.0.result -> "incorrect"
+[SCORM] GetValue cmi.interactions.0.objectives._count -> "2"
+[SCORM] GetValue cmi.interactions.0.objectives.0.id -> "Objective1"
+[SCORM] GetValue cmi.interactions.0.objectives.1.id -> "Objective2"
+[SCORM] GetValue cmi.interactions.0.correct_responses._count -> "1"
+[SCORM] GetValue cmi.interactions.0.correct_responses.0.pattern -> "true"
+[SCORM] GetValue cmi.interactions.1.id -> "scenario-02-a1-d1"
+[SCORM] GetValue cmi.interactions.1.type -> "true-false"
+[SCORM] GetValue cmi.interactions.1.timestamp -> "2026-10-06T14:31:46"
+[SCORM] GetValue cmi.interactions.1.weighting -> "1"
+[SCORM] GetValue cmi.interactions.1.learner_response -> "true"
+[SCORM] GetValue cmi.interactions.1.latency -> "P0DT0H0M17.4S"
+[SCORM] GetValue cmi.interactions.1.description -> "Bloqueo y etiquetado (LOTO): decisión 1 (verdadero/falso)"
+[SCORM] GetValue cmi.interactions.1.result -> "correct"
+[SCORM] GetValue cmi.interactions.1.objectives._count -> "1"
+[SCORM] GetValue cmi.interactions.1.objectives.0.id -> "scenario-02"
+[SCORM] GetValue cmi.interactions.1.correct_responses._count -> "1"
+[SCORM] GetValue cmi.interactions.1.correct_responses.0.pattern -> "true"
+[SCORM] GetValue cmi.interactions.2.id -> "scenario-02-a1-d2"
+[SCORM] GetValue cmi.interactions.2.type -> "choice"
+[SCORM] GetValue cmi.interactions.2.timestamp -> "2026-10-06T14:31:46"
+[SCORM] GetValue cmi.interactions.2.weighting -> "1"
+[SCORM] GetValue cmi.interactions.2.learner_response -> "opt-a"
+[SCORM] GetValue cmi.interactions.2.latency -> "P0DT0H0M14.6S"
+[SCORM] GetValue cmi.interactions.2.description -> "Bloqueo y etiquetado (LOTO): decisión 2 (elección múltiple)"
+[SCORM] GetValue cmi.interactions.2.result -> "correct"
+[SCORM] GetValue cmi.interactions.2.objectives._count -> "1"
+[SCORM] GetValue cmi.interactions.2.objectives.0.id -> "scenario-02"
+[SCORM] GetValue cmi.interactions.2.correct_responses._count -> "1"
+[SCORM] GetValue cmi.interactions.2.correct_responses.0.pattern -> "opt-a"
+[SCORM] GetValue cmi.interactions.3.id -> "scenario-02-a1-d3"
+[SCORM] GetValue cmi.interactions.3.type -> "true-false"
+[SCORM] GetValue cmi.interactions.3.timestamp -> "2026-10-06T14:31:46"
+[SCORM] GetValue cmi.interactions.3.weighting -> "1"
+[SCORM] GetValue cmi.interactions.3.learner_response -> "true"
+[SCORM] GetValue cmi.interactions.3.latency -> "P0DT0H0M3S"
+[SCORM] GetValue cmi.interactions.3.description -> "Bloqueo y etiquetado (LOTO): decisión 3 (verdadero/falso)"
+[SCORM] GetValue cmi.interactions.3.result -> "correct"
+[SCORM] GetValue cmi.interactions.3.objectives._count -> "1"
+[SCORM] GetValue cmi.interactions.3.objectives.0.id -> "scenario-02"
+[SCORM] GetValue cmi.interactions.3.correct_responses._count -> "1"
+[SCORM] GetValue cmi.interactions.3.correct_responses.0.pattern -> "true"
+[SCORM] GetValue cmi.interactions.4.id -> "scenario-02-a1-d4"
+[SCORM] GetValue cmi.interactions.4.type -> "choice"
+[SCORM] GetValue cmi.interactions.4.timestamp -> "2026-10-06T14:31:46"
+[SCORM] GetValue cmi.interactions.4.weighting -> "1"
+[SCORM] GetValue cmi.interactions.4.learner_response -> "opt-c"
+[SCORM] GetValue cmi.interactions.4.latency -> "P0DT0H0M15S"
+[SCORM] GetValue cmi.interactions.4.description -> "Bloqueo y etiquetado (LOTO): decisión 4 (elección múltiple)"
+[SCORM] GetValue cmi.interactions.4.result -> "correct"
+[SCORM] GetValue cmi.interactions.4.objectives._count -> "1"
+[SCORM] GetValue cmi.interactions.4.objectives.0.id -> "scenario-02"
+[SCORM] GetValue cmi.interactions.4.correct_responses._count -> "1"
+[SCORM] GetValue cmi.interactions.4.correct_responses.0.pattern -> "opt-c"
+[SCORM] GetValue cmi.interactions.5.id -> "scenario-02-a1-d5"
+[SCORM] GetValue cmi.interactions.5.type -> "true-false"
+[SCORM] GetValue cmi.interactions.5.timestamp -> "2026-10-06T14:31:46"
+[SCORM] GetValue cmi.interactions.5.weighting -> "1"
+[SCORM] GetValue cmi.interactions.5.learner_response -> "false"
+[SCORM] GetValue cmi.interactions.5.latency -> "P0DT0H0M16.7S"
+[SCORM] GetValue cmi.interactions.5.description -> "Bloqueo y etiquetado (LOTO): decisión 5 (verdadero/falso)"
+[SCORM] GetValue cmi.interactions.5.result -> "correct"
+[SCORM] GetValue cmi.interactions.5.objectives._count -> "1"
+[SCORM] GetValue cmi.interactions.5.objectives.0.id -> "scenario-02"
+[SCORM] GetValue cmi.interactions.5.correct_responses._count -> "1"
+[SCORM] GetValue cmi.interactions.5.correct_responses.0.pattern -> "false"
+[SCORM] GetValue cmi.launch_data -> "Launch data from the ims manifest file will be here."
+[SCORM] GetValue cmi.learner_id -> "rdescartes"
+[SCORM] GetValue cmi.learner_name -> "Rene Descartes"
+[SCORM] GetValue cmi.learner_preference.audio_level -> "80.0"
+[SCORM] GetValue cmi.learner_preference.language -> "en-US"
+[SCORM] GetValue cmi.learner_preference.delivery_speed -> "1.0"
+[SCORM] GetValue cmi.learner_preference.audio_captioning -> "-1"
+[SCORM] GetValue cmi.location -> "scenario-02"
+[SCORM] GetValue cmi.objectives._count -> "3"
+[SCORM] GetValue cmi.objectives.0.id -> "Objective1"
+[SCORM] GetValue cmi.objectives.0.score.scaled -> "0.50"
+[SCORM] GetValue cmi.objectives.0.score.raw -> "45.0"
+[SCORM] GetValue cmi.objectives.0.score.max -> "90.0"
+[SCORM] GetValue cmi.objectives.0.score.min -> "0.0"
+[SCORM] GetValue cmi.objectives.0.success_status -> "failed"
+[SCORM] GetValue cmi.objectives.0.completion_status -> "completed"
+[SCORM] GetValue cmi.objectives.0.progress_measure -> "0.9"
+[SCORM] GetValue cmi.objectives.0.description -> "Understand how to use the SCORM API."
+[SCORM] GetValue cmi.objectives.1.id -> "Objective2"
+[SCORM] GetValue cmi.objectives.1.score.scaled -> "0.80"
+[SCORM] GetValue cmi.objectives.1.score.raw -> "80.0"
+[SCORM] GetValue cmi.objectives.1.score.max -> "100.0"
+[SCORM] GetValue cmi.objectives.1.score.min -> "0.0"
+[SCORM] GetValue cmi.objectives.1.success_status -> "passed"
+[SCORM] GetValue cmi.objectives.1.completion_status -> "completed"
+[SCORM] GetValue cmi.objectives.1.progress_measure -> "1"
+[SCORM] GetValue cmi.objectives.1.description -> "Understand how to use the SCORM API in Unity3D."
+[SCORM] GetValue cmi.objectives.2.id -> "scenario-02"
+[SCORM] GetValue cmi.objectives.2.score.scaled -> "0.98"
+[SCORM] GetValue cmi.objectives.2.score.raw -> "9.8"
+[SCORM] GetValue cmi.objectives.2.score.max -> "10"
+[SCORM] GetValue cmi.objectives.2.score.min -> "0"
+[SCORM] GetValue cmi.objectives.2.success_status -> "passed"
+[SCORM] GetValue cmi.objectives.2.completion_status -> "completed"
+[SCORM] GetValue cmi.objectives.2.progress_measure -> "1"
+[SCORM] GetValue cmi.objectives.2.description -> "Consignar una máquina antes de una intervención de mantenimiento. Nota sobre 10."
+[SCORM] GetValue cmi.max_time_allowed -> "P0DT1H0M0S"
+[SCORM] GetValue cmi.mode -> "normal"
+[SCORM] GetValue cmi.progress_measure -> "0.2"
+[SCORM] GetValue cmi.scaled_passing_score -> "0.8"
+[SCORM] GetValue cmi.score.scaled -> "0.2178"
+[SCORM] GetValue cmi.score.raw -> "21.78"
+[SCORM] GetValue cmi.score.max -> "100.0"
+[SCORM] GetValue cmi.score.min -> "0.0"
+[SCORM] GetValue cmi.success_status -> "unknown"
+[SCORM] GetValue cmi.suspend_data -> "{"v":1,"cur":"scenario-02","s":[{"id":"scenario-02","n":1,"b":9.800000190734864,"l":9.800000190734864,"p":0,"t0":1791289906,"t1":1791289906,"a":1,"d":0}]}"
+[SCORM] GetValue cmi.time_limit_action -> "continue,no message"
+[SCORM] GetValue cmi.total_time -> "P0DT0H27M10S"
+]]></output>
+        </test-case>
+        <test-case id="1004" name="Scene_HostUnderScormManagerAndAllReferencesWired" fullname="ScenarioDemoSceneTests.Scene_HostUnderScormManagerAndAllReferencesWired" methodname="Scene_HostUnderScormManagerAndAllReferencesWired" classname="ScenarioDemoSceneTests" runstate="Runnable" seed="1433703508" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.047668" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1006" name="ScenarioTrackerTests" fullname="ScenarioTrackerTests" classname="ScenarioTrackerTests" runstate="Runnable" testcasecount="33" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.405640" total="33" passed="33" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1009" name="BeginScenario_WritesIncompleteObjectiveIdFirst_LocationAndSuspendData" fullname="ScenarioTrackerTests.BeginScenario_WritesIncompleteObjectiveIdFirst_LocationAndSuspendData" methodname="BeginScenario_WritesIncompleteObjectiveIdFirst_LocationAndSuspendData" classname="ScenarioTrackerTests" runstate="Runnable" seed="918050705" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.014422" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1037" name="Close_CommitRejected_KeepsSessionOpenWithoutTerminate_AndCanRetry" fullname="ScenarioTrackerTests.Close_CommitRejected_KeepsSessionOpenWithoutTerminate_AndCanRetry" methodname="Close_CommitRejected_KeepsSessionOpenWithoutTerminate_AndCanRetry" classname="ScenarioTrackerTests" runstate="Runnable" seed="639465482" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003958" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1038" name="Close_RewritesObjectiveAndGlobalScoreTheLmsRejectedBefore" fullname="ScenarioTrackerTests.Close_RewritesObjectiveAndGlobalScoreTheLmsRejectedBefore" methodname="Close_RewritesObjectiveAndGlobalScoreTheLmsRejectedBefore" classname="ScenarioTrackerTests" runstate="Runnable" seed="1650103655" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003782" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1011" name="CompleteScenario_OwnScoreRange_ScaledIsNormalizedAndUsesScenarioThreshold" fullname="ScenarioTrackerTests.CompleteScenario_OwnScoreRange_ScaledIsNormalizedAndUsesScenarioThreshold" methodname="CompleteScenario_OwnScoreRange_ScaledIsNormalizedAndUsesScenarioThreshold" classname="ScenarioTrackerTests" runstate="Runnable" seed="2025243561" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002205" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1010" name="CompleteScenario_WritesObjectiveWithStableIdScoreAndStatuses_AndCommits" fullname="ScenarioTrackerTests.CompleteScenario_WritesObjectiveWithStableIdScoreAndStatuses_AndCommits" methodname="CompleteScenario_WritesObjectiveWithStableIdScoreAndStatuses_AndCommits" classname="ScenarioTrackerTests" runstate="Runnable" seed="481137749" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003236" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1008" name="Constructor_InvalidCatalog_Throws" fullname="ScenarioTrackerTests.Constructor_InvalidCatalog_Throws" methodname="Constructor_InvalidCatalog_Throws" classname="ScenarioTrackerTests" runstate="Runnable" seed="226898386" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003049" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1026" name="FinishAndRelaunch_StartsNewAttempt" fullname="ScenarioTrackerTests.FinishAndRelaunch_StartsNewAttempt" methodname="FinishAndRelaunch_StartsNewAttempt" classname="ScenarioTrackerTests" runstate="Runnable" seed="1864256154" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004526" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1017" name="GlobalScore_CompletedOnly_AveragesCompletedScenarios" fullname="ScenarioTrackerTests.GlobalScore_CompletedOnly_AveragesCompletedScenarios" methodname="GlobalScore_CompletedOnly_AveragesCompletedScenarios" classname="ScenarioTrackerTests" runstate="Runnable" seed="380676694" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002313" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1014" name="GlobalScore_WeightedAverageOverAllScenarios_RawIs0To100" fullname="ScenarioTrackerTests.GlobalScore_WeightedAverageOverAllScenarios_RawIs0To100" methodname="GlobalScore_WeightedAverageOverAllScenarios_RawIs0To100" classname="ScenarioTrackerTests" runstate="Runnable" seed="1795692434" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004579" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1015" name="GlobalSuccess_PassedOnlyWhenAllCompletedAndAboveThreshold" fullname="ScenarioTrackerTests.GlobalSuccess_PassedOnlyWhenAllCompletedAndAboveThreshold" methodname="GlobalSuccess_PassedOnlyWhenAllCompletedAndAboveThreshold" classname="ScenarioTrackerTests" runstate="Runnable" seed="1168354718" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004650" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1016" name="GlobalSuccess_RequireAllScenariosPassed_FailsWithAFailedScenario" fullname="ScenarioTrackerTests.GlobalSuccess_RequireAllScenariosPassed_FailsWithAFailedScenario" methodname="GlobalSuccess_RequireAllScenariosPassed_FailsWithAFailedScenario" classname="ScenarioTrackerTests" runstate="Runnable" seed="412406077" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003119" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1007" name="Initialize_WritesNothing_AndIgnoresSeedSuspendDataThatIsNotJson" fullname="ScenarioTrackerTests.Initialize_WritesNothing_AndIgnoresSeedSuspendDataThatIsNotJson" methodname="Initialize_WritesNothing_AndIgnoresSeedSuspendDataThatIsNotJson" classname="ScenarioTrackerTests" runstate="Runnable" seed="1997466482" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003860" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1030" name="InvalidCalls_ThrowWithContext" fullname="ScenarioTrackerTests.InvalidCalls_ThrowWithContext" methodname="InvalidCalls_ThrowWithContext" classname="ScenarioTrackerTests" runstate="Runnable" seed="237184294" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002481" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1031" name="LmsRejectingSuspendData_IsReportedAndRetriedNextTime" fullname="ScenarioTrackerTests.LmsRejectingSuspendData_IsReportedAndRetriedNextTime" methodname="LmsRejectingSuspendData_IsReportedAndRetriedNextTime" classname="ScenarioTrackerTests" runstate="Runnable" seed="614982998" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004063" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1021" name="RecordDecision_AttemptRestartedAfterResume_DoesNotReuseInteractionIds" fullname="ScenarioTrackerTests.RecordDecision_AttemptRestartedAfterResume_DoesNotReuseInteractionIds" methodname="RecordDecision_AttemptRestartedAfterResume_DoesNotReuseInteractionIds" classname="ScenarioTrackerTests" runstate="Runnable" seed="1431091753" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003831" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1039" name="RecordDecision_ResumedHalfPlayedAttemptWithoutBegin_StartsNewAttempt" fullname="ScenarioTrackerTests.RecordDecision_ResumedHalfPlayedAttemptWithoutBegin_StartsNewAttempt" methodname="RecordDecision_ResumedHalfPlayedAttemptWithoutBegin_StartsNewAttempt" classname="ScenarioTrackerTests" runstate="Runnable" seed="2108564032" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004289" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1020" name="RecordDecision_SecondAttempt_UsesNewAttemptNumberInId" fullname="ScenarioTrackerTests.RecordDecision_SecondAttempt_UsesNewAttemptNumberInId" methodname="RecordDecision_SecondAttempt_UsesNewAttemptNumberInId" classname="ScenarioTrackerTests" runstate="Runnable" seed="497462312" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004308" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1040" name="RecordDecision_TimestampComesFromInjectedClock" fullname="ScenarioTrackerTests.RecordDecision_TimestampComesFromInjectedClock" methodname="RecordDecision_TimestampComesFromInjectedClock" classname="ScenarioTrackerTests" runstate="Runnable" seed="897246047" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002034" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1019" name="RecordDecision_WritesInteractionLinkedToScenarioObjective" fullname="ScenarioTrackerTests.RecordDecision_WritesInteractionLinkedToScenarioObjective" methodname="RecordDecision_WritesInteractionLinkedToScenarioObjective" classname="ScenarioTrackerTests" runstate="Runnable" seed="1052215766" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004630" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1029" name="ResetLocalState_WritesEmptyVersionedStateAndKeepsLmsObjectives" fullname="ScenarioTrackerTests.ResetLocalState_WritesEmptyVersionedStateAndKeepsLmsObjectives" methodname="ResetLocalState_WritesEmptyVersionedStateAndKeepsLmsObjectives" classname="ScenarioTrackerTests" runstate="Runnable" seed="1509166674" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002948" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1028" name="Resume_SuspendDataFromNewerVersion_IsNotTrusted" fullname="ScenarioTrackerTests.Resume_SuspendDataFromNewerVersion_IsNotTrusted" methodname="Resume_SuspendDataFromNewerVersion_IsNotTrusted" classname="ScenarioTrackerTests" runstate="Runnable" seed="1351243373" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.005500" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1035" name="Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives" fullname="ScenarioTrackerTests.Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives" classname="ScenarioTrackerTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.014148" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1032" name="Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives(&quot;{}&quot;)" fullname="ScenarioTrackerTests.Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives(&quot;{}&quot;)" methodname="Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives" classname="ScenarioTrackerTests" runstate="Runnable" seed="554467917" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004104" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+          </test-case>
+          <test-case id="1033" name="Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives(&quot;{\&quot;foo\&quot;:1}&quot;)" fullname="ScenarioTrackerTests.Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives(&quot;{\&quot;foo\&quot;:1}&quot;)" methodname="Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives" classname="ScenarioTrackerTests" runstate="Runnable" seed="623281542" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003870" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+          </test-case>
+          <test-case id="1034" name="Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives(&quot;{\&quot;cur\&quot;:\&quot;scenario-01\&quot;,\&quot;s\&quot;:[]}&quot;)" fullname="ScenarioTrackerTests.Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives(&quot;{\&quot;cur\&quot;:\&quot;scenario-01\&quot;,\&quot;s\&quot;:[]}&quot;)" methodname="Resume_SuspendDataJsonWithoutVersion_RebuildsFromObjectives" classname="ScenarioTrackerTests" runstate="Runnable" seed="818760927" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002667" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+          </test-case>
+        </test-suite>
+        <test-case id="1027" name="Resume_SuspendDataNotJson_RebuildsFromObjectives" fullname="ScenarioTrackerTests.Resume_SuspendDataNotJson_RebuildsFromObjectives" methodname="Resume_SuspendDataNotJson_RebuildsFromObjectives" classname="ScenarioTrackerTests" runstate="Runnable" seed="1467610469" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004931" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1018" name="ScenarioScoring_AllWeightsZero_ScenariosCountEqually" fullname="ScenarioTrackerTests.ScenarioScoring_AllWeightsZero_ScenariosCountEqually" methodname="ScenarioScoring_AllWeightsZero_ScenariosCountEqually" classname="ScenarioTrackerTests" runstate="Runnable" seed="1710318983" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002136" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1012" name="ScorePolicyBest_KeepsHighestAttemptInLms" fullname="ScenarioTrackerTests.ScorePolicyBest_KeepsHighestAttemptInLms" methodname="ScorePolicyBest_KeepsHighestAttemptInLms" classname="ScenarioTrackerTests" runstate="Runnable" seed="1010987335" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004592" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1013" name="ScorePolicyLast_ReportsMostRecentAttempt" fullname="ScenarioTrackerTests.ScorePolicyLast_ReportsMostRecentAttempt" methodname="ScorePolicyLast_ReportsMostRecentAttempt" classname="ScenarioTrackerTests" runstate="Runnable" seed="1416740783" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003019" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1024" name="Suspend_WritesSessionTimeExitCommitTerminateInOrder_AndClosesTheTracker" fullname="ScenarioTrackerTests.Suspend_WritesSessionTimeExitCommitTerminateInOrder_AndClosesTheTracker" methodname="Suspend_WritesSessionTimeExitCommitTerminateInOrder_AndClosesTheTracker" classname="ScenarioTrackerTests" runstate="Runnable" seed="870230738" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.004205" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1025" name="SuspendAndRelaunch_RestoresStateWithoutDuplicatingObjectives" fullname="ScenarioTrackerTests.SuspendAndRelaunch_RestoresStateWithoutDuplicatingObjectives" methodname="SuspendAndRelaunch_RestoresStateWithoutDuplicatingObjectives" classname="ScenarioTrackerTests" runstate="Runnable" seed="1210889413" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.006507" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1023" name="SuspendData_200Scenarios_StaysBelow64000AndCompact" fullname="ScenarioTrackerTests.SuspendData_200Scenarios_StaysBelow64000AndCompact" methodname="SuspendData_200Scenarios_StaysBelow64000AndCompact" classname="ScenarioTrackerTests" runstate="Runnable" seed="209331820" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.255980" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[SCORM] cmi.suspend_data is 4114 characters: above the 4000 a SCORM 2004 3rd Edition LMS must keep (4th Edition: 64000).
+]]></output>
+        </test-case>
+        <test-case id="1022" name="SuspendData_IsVersionedCompactJsonWithInvariantNumbers" fullname="ScenarioTrackerTests.SuspendData_IsVersionedCompactJsonWithInvariantNumbers" methodname="SuspendData_IsVersionedCompactJsonWithInvariantNumbers" classname="ScenarioTrackerTests" runstate="Runnable" seed="1090487411" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002506" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1036" name="SuspendData_SavedJsonCarriesCurrentVersion" fullname="ScenarioTrackerTests.SuspendData_SavedJsonCarriesCurrentVersion" methodname="SuspendData_SavedJsonCarriesCurrentVersion" classname="ScenarioTrackerTests" runstate="Runnable" seed="845127498" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002511" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1041" name="ScormEditorBackendInteractionTests" fullname="ScormEditorBackendInteractionTests" classname="ScormEditorBackendInteractionTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.017593" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1044" name="AddInteraction_WithoutTimestamp_UsesNow" fullname="ScormEditorBackendInteractionTests.AddInteraction_WithoutTimestamp_UsesNow" methodname="AddInteraction_WithoutTimestamp_UsesNow" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1390014740" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002371" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1043" name="AddInteraction_WithTwoObjectivesAndTwoCorrectResponses_WritesAllIndexes" fullname="ScormEditorBackendInteractionTests.AddInteraction_WithTwoObjectivesAndTwoCorrectResponses_WritesAllIndexes" methodname="AddInteraction_WithTwoObjectivesAndTwoCorrectResponses_WritesAllIndexes" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="1757708539" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.001863" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1049" name="CommitAndTerminate_ReachTheBackend" fullname="ScormEditorBackendInteractionTests.CommitAndTerminate_ReachTheBackend" methodname="CommitAndTerminate_ReachTheBackend" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="2047932968" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000739" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1042" name="Initialize_LoadsStudentRecordFromBackend" fullname="ScormEditorBackendInteractionTests.Initialize_LoadsStudentRecordFromBackend" methodname="Initialize_LoadsStudentRecordFromBackend" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="896283550" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.001681" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1047" name="Setters_WriteInvariantNumbersAndVocabulary" fullname="ScormEditorBackendInteractionTests.Setters_WriteInvariantNumbersAndVocabulary" methodname="Setters_WriteInvariantNumbersAndVocabulary" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="743377115" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000948" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1048" name="SuspendData_WithPipe_IsNotTruncated" fullname="ScormEditorBackendInteractionTests.SuspendData_WithPipe_IsNotTruncated" methodname="SuspendData_WithPipe_IsNotTruncated" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="334388111" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.001303" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1045" name="UpdateInteraction_WithNullCollections_DoesNotThrowAndWritesFields" fullname="ScormEditorBackendInteractionTests.UpdateInteraction_WithNullCollections_DoesNotThrowAndWritesFields" methodname="UpdateInteraction_WithNullCollections_DoesNotThrowAndWritesFields" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="213316349" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002567" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1046" name="UpdateInteraction_WritesPatternNotPattrern" fullname="ScormEditorBackendInteractionTests.UpdateInteraction_WritesPatternNotPattrern" methodname="UpdateInteraction_WritesPatternNotPattrern" classname="ScormEditorBackendInteractionTests" runstate="Runnable" seed="350088753" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.001533" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1050" name="ScormFormatTests" fullname="ScormFormatTests" classname="ScormFormatTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.021757" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1062" name="CustomTypeToString_DelegatesToVocabulary" fullname="ScormFormatTests.CustomTypeToString_DelegatesToVocabulary" methodname="CustomTypeToString_DelegatesToVocabulary" classname="ScormFormatTests" runstate="Runnable" seed="1537767404" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000769" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1053" name="ParseReal_IsInvariantAndTolerant" fullname="ScormFormatTests.ParseReal_IsInvariantAndTolerant" methodname="ParseReal_IsInvariantAndTolerant" classname="ScormFormatTests" runstate="Runnable" seed="143077985" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000784" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1058" name="ParseTimestamp_EmptyReturnsMinValueWithoutException" fullname="ScormFormatTests.ParseTimestamp_EmptyReturnsMinValueWithoutException" methodname="ParseTimestamp_EmptyReturnsMinValueWithoutException" classname="ScormFormatTests" runstate="Runnable" seed="170717508" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003136" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1059" name="ParseTimestamp_ParsesScormTimeWithFractionAndOffset" fullname="ScormFormatTests.ParseTimestamp_ParsesScormTimeWithFractionAndOffset" methodname="ParseTimestamp_ParsesScormTimeWithFractionAndOffset" classname="ScormFormatTests" runstate="Runnable" seed="1037263349" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.003440" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1054" name="ParseUserReal_AcceptsDotAndCurrentCultureComma" fullname="ScormFormatTests.ParseUserReal_AcceptsDotAndCurrentCultureComma" methodname="ParseUserReal_AcceptsDotAndCurrentCultureComma" classname="ScormFormatTests" runstate="Runnable" seed="940515533" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.001327" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1055" name="SecondsToTimeInterval_KeepsFractionWithDot" fullname="ScormFormatTests.SecondsToTimeInterval_KeepsFractionWithDot" methodname="SecondsToTimeInterval_KeepsFractionWithDot" classname="ScormFormatTests" runstate="Runnable" seed="2355924" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000532" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1064" name="StringToResultType_ParsesNumericEstimateInvariant" fullname="ScormFormatTests.StringToResultType_ParsesNumericEstimateInvariant" methodname="StringToResultType_ParsesNumericEstimateInvariant" classname="ScormFormatTests" runstate="Runnable" seed="469483665" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000406" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1063" name="StringToVocabulary_RoundTrips" fullname="ScormFormatTests.StringToVocabulary_RoundTrips" methodname="StringToVocabulary_RoundTrips" classname="ScormFormatTests" runstate="Runnable" seed="1176148224" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.001302" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1057" name="TimeInterval_RoundTrips" fullname="ScormFormatTests.TimeInterval_RoundTrips" methodname="TimeInterval_RoundTrips" classname="ScormFormatTests" runstate="Runnable" seed="1968268712" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000419" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1056" name="TimeIntervalToSeconds_ParsesIsoDurations" fullname="ScormFormatTests.TimeIntervalToSeconds_ParsesIsoDurations" methodname="TimeIntervalToSeconds_ParsesIsoDurations" classname="ScormFormatTests" runstate="Runnable" seed="782980395" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000399" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1052" name="ToReal_NeverUsesExponent" fullname="ScormFormatTests.ToReal_NeverUsesExponent" methodname="ToReal_NeverUsesExponent" classname="ScormFormatTests" runstate="Runnable" seed="2122921541" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000284" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1051" name="ToReal_UsesDotDecimalSeparator" fullname="ScormFormatTests.ToReal_UsesDotDecimalSeparator" methodname="ToReal_UsesDotDecimalSeparator" classname="ScormFormatTests" runstate="Runnable" seed="1584454623" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000293" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1060" name="ToTimestamp_IsScormTime" fullname="ScormFormatTests.ToTimestamp_IsScormTime" methodname="ToTimestamp_IsScormTime" classname="ScormFormatTests" runstate="Runnable" seed="2138280277" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000443" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1061" name="ToVocabulary_MapsEnumsToScormTokens" fullname="ScormFormatTests.ToVocabulary_MapsEnumsToScormTokens" methodname="ToVocabulary_MapsEnumsToScormTokens" classname="ScormFormatTests" runstate="Runnable" seed="116676768" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.000908" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1065" name="ScormManifestBuilderTests" fullname="ScormManifestBuilderTests" classname="ScormManifestBuilderTests" runstate="Runnable" testcasecount="18" result="Skipped" label="Ignored" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:48Z" duration="0.972612" total="18" passed="17" failed="0" inconclusive="0" skipped="1" asserts="0">
+        <properties />
+        <reason>
+          <message><![CDATA[One or more child tests were ignored]]></message>
+        </reason>
+        <test-case id="1079" name="Build_3rd_IsValidAgainst3rdEditionXsd_WhenAvailable" fullname="ScormManifestBuilderTests.Build_3rd_IsValidAgainst3rdEditionXsd_WhenAvailable" methodname="Build_3rd_IsValidAgainst3rdEditionXsd_WhenAvailable" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1275766430" result="Skipped" label="Ignored" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:47Z" duration="0.002651" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <reason>
+            <message><![CDATA[Plugins/2004_3rd has no XSD yet (approved temporary fallback to the 4th Edition set).]]></message>
+          </reason>
+        </test-case>
+        <test-case id="1078" name="Build_3rdAnd4th_AreValidAgainst4thEditionXsd" fullname="ScormManifestBuilderTests.Build_3rdAnd4th_AreValidAgainst4thEditionXsd" methodname="Build_3rdAnd4th_AreValidAgainst4thEditionXsd" classname="ScormManifestBuilderTests" runstate="Runnable" seed="5484208" result="Passed" start-time="2026-10-06 12:31:47Z" end-time="2026-10-06 12:31:48Z" duration="0.339103" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1069" name="Build_3rdEdition_Maps4thCompletedByMeasureToElementAndWarns" fullname="ScormManifestBuilderTests.Build_3rdEdition_Maps4thCompletedByMeasureToElementAndWarns" methodname="Build_3rdEdition_Maps4thCompletedByMeasureToElementAndWarns" classname="ScormManifestBuilderTests" runstate="Runnable" seed="694985720" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.098149" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1066" name="Build_3rdEdition_WritesSchemaVersionAndDecimalCompletionThreshold" fullname="ScormManifestBuilderTests.Build_3rdEdition_WritesSchemaVersionAndDecimalCompletionThreshold" methodname="Build_3rdEdition_WritesSchemaVersionAndDecimalCompletionThreshold" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1834012684" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001590" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1068" name="Build_4thEdition_Maps3rdCompletionThresholdWithoutCompletedByMeasureAndWarns" fullname="ScormManifestBuilderTests.Build_4thEdition_Maps3rdCompletionThresholdWithoutCompletedByMeasureAndWarns" methodname="Build_4thEdition_Maps3rdCompletionThresholdWithoutCompletedByMeasureAndWarns" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1963851067" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.058655" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1067" name="Build_4thEdition_WritesCompletionThresholdAttributes" fullname="ScormManifestBuilderTests.Build_4thEdition_WritesCompletionThresholdAttributes" methodname="Build_4thEdition_WritesCompletionThresholdAttributes" classname="ScormManifestBuilderTests" runstate="Runnable" seed="699600989" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002264" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1070" name="Build_BothEditionsSettings_UsesOwnEditionAndWarnsAboutTheOther" fullname="ScormManifestBuilderTests.Build_BothEditionsSettings_UsesOwnEditionAndWarnsAboutTheOther" methodname="Build_BothEditionsSettings_UsesOwnEditionAndWarnsAboutTheOther" classname="ScormManifestBuilderTests" runstate="Runnable" seed="2053038992" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002276" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1075" name="Build_EscapesSpecialCharacters" fullname="ScormManifestBuilderTests.Build_EscapesSpecialCharacters" methodname="Build_EscapesSpecialCharacters" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1085435555" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002765" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1076" name="Build_FileHrefs_UseSlashesAreEscapedAndExcludeManifest" fullname="ScormManifestBuilderTests.Build_FileHrefs_UseSlashesAreEscapedAndExcludeManifest" methodname="Build_FileHrefs_UseSlashesAreEscapedAndExcludeManifest" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1522150412" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.003488" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1077" name="Build_HasNoBomAndIsUtf8" fullname="ScormManifestBuilderTests.Build_HasNoBomAndIsUtf8" methodname="Build_HasNoBomAndIsUtf8" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1815542393" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001703" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1073" name="Build_WithoutOptionalValues_OmitsOptionalElements" fullname="ScormManifestBuilderTests.Build_WithoutOptionalValues_OmitsOptionalElements" methodname="Build_WithoutOptionalValues_OmitsOptionalElements" classname="ScormManifestBuilderTests" runstate="Runnable" seed="241942684" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001467" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1074" name="Build_WithTimeLimit_WritesLimitConditionsAndTimeLimitAction" fullname="ScormManifestBuilderTests.Build_WithTimeLimit_WritesLimitConditionsAndTimeLimitAction" methodname="Build_WithTimeLimit_WritesLimitConditionsAndTimeLimitAction" classname="ScormManifestBuilderTests" runstate="Runnable" seed="509183767" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001288" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1071" name="GetEditionWarnings_OwnEditionSettings_NoWarnings" fullname="ScormManifestBuilderTests.GetEditionWarnings_OwnEditionSettings_NoWarnings" methodname="GetEditionWarnings_OwnEditionSettings_NoWarnings" classname="ScormManifestBuilderTests" runstate="Runnable" seed="941914310" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.000750" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1072" name="Package_AddsEditionWarningsToResult" fullname="ScormManifestBuilderTests.Package_AddsEditionWarningsToResult" methodname="Package_AddsEditionWarningsToResult" classname="ScormManifestBuilderTests" runstate="Runnable" seed="639405231" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.056382" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1083" name="Package_CreatesValidZipWithManifestAndXsdAtRoot" fullname="ScormManifestBuilderTests.Package_CreatesValidZipWithManifestAndXsdAtRoot" methodname="Package_CreatesValidZipWithManifestAndXsdAtRoot" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1398205965" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.273578" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1082" name="ResolveXsdDirectory_FallsBackTo4thWhen3rdIsMissingOrEmpty" fullname="ScormManifestBuilderTests.ResolveXsdDirectory_FallsBackTo4thWhen3rdIsMissingOrEmpty" methodname="ResolveXsdDirectory_FallsBackTo4thWhen3rdIsMissingOrEmpty" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1138698008" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.006308" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1080" name="ValidateManifest_ReportsInvalidManifest" fullname="ScormManifestBuilderTests.ValidateManifest_ReportsInvalidManifest" methodname="ValidateManifest_ReportsInvalidManifest" classname="ScormManifestBuilderTests" runstate="Runnable" seed="1683904625" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.056118" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1081" name="ValidateManifest_ReportsUnknownNamespaceElement" fullname="ScormManifestBuilderTests.ValidateManifest_ReportsUnknownNamespaceElement" methodname="ValidateManifest_ReportsUnknownNamespaceElement" classname="ScormManifestBuilderTests" runstate="Runnable" seed="284394893" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.054015" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1084" name="ScormScenarioApiTests" fullname="ScormScenarioApiTests" classname="ScormScenarioApiTests" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.070049" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1092" name="Backend_NotSuspended_RelaunchStartsANewAttempt" fullname="ScormScenarioApiTests.Backend_NotSuspended_RelaunchStartsANewAttempt" methodname="Backend_NotSuspended_RelaunchStartsANewAttempt" classname="ScormScenarioApiTests" runstate="Runnable" seed="1389295939" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.003534" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1093" name="Backend_RejectsFieldBeforeIdAndChangedObjectiveId" fullname="ScormScenarioApiTests.Backend_RejectsFieldBeforeIdAndChangedObjectiveId" methodname="Backend_RejectsFieldBeforeIdAndChangedObjectiveId" classname="ScormScenarioApiTests" runstate="Runnable" seed="1191981044" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001299" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1102" name="H1_LegacyAddInteractionAfterTerminate_IsNotAddedAndRecordInteractionStillLandsAtCount" fullname="ScormScenarioApiTests.H1_LegacyAddInteractionAfterTerminate_IsNotAddedAndRecordInteractionStillLandsAtCount" methodname="H1_LegacyAddInteractionAfterTerminate_IsNotAddedAndRecordInteractionStillLandsAtCount" classname="ScormScenarioApiTests" runstate="Runnable" seed="1859002120" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001715" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1101" name="H1_LegacyAddObjectiveWithRejectedId_IsNotAddedAndUpsertStillLandsAtCount" fullname="ScormScenarioApiTests.H1_LegacyAddObjectiveWithRejectedId_IsNotAddedAndUpsertStillLandsAtCount" methodname="H1_LegacyAddObjectiveWithRejectedId_IsNotAddedAndUpsertStillLandsAtCount" classname="ScormScenarioApiTests" runstate="Runnable" seed="546817880" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.004043" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1105" name="H2_RecordInteraction_RejectedId_ReturnsMinusOneAndAddsNothing" fullname="ScormScenarioApiTests.H2_RecordInteraction_RejectedId_ReturnsMinusOneAndAddsNothing" methodname="H2_RecordInteraction_RejectedId_ReturnsMinusOneAndAddsNothing" classname="ScormScenarioApiTests" runstate="Runnable" seed="477622513" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001754" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1104" name="H2_RecordInteraction_ReportsRejectedField" fullname="ScormScenarioApiTests.H2_RecordInteraction_ReportsRejectedField" methodname="H2_RecordInteraction_ReportsRejectedField" classname="ScormScenarioApiTests" runstate="Runnable" seed="1660831975" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002632" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1103" name="H2_UpsertObjective_ReportsRejectedFieldAndRetriesItNextTime" fullname="ScormScenarioApiTests.H2_UpsertObjective_ReportsRejectedFieldAndRetriesItNextTime" methodname="H2_UpsertObjective_ReportsRejectedFieldAndRetriesItNextTime" classname="ScormScenarioApiTests" runstate="Runnable" seed="207790054" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001845" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1106" name="H3_HandlerCallingTheApi_DoesNotRecurseAndKeepsOuterErrorCode" fullname="ScormScenarioApiTests.H3_HandlerCallingTheApi_DoesNotRecurseAndKeepsOuterErrorCode" methodname="H3_HandlerCallingTheApi_DoesNotRecurseAndKeepsOuterErrorCode" classname="ScormScenarioApiTests" runstate="Runnable" seed="95008765" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001352" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1107" name="L1_RealUpdateAgainstVocabularyValue_IsWritten" fullname="ScormScenarioApiTests.L1_RealUpdateAgainstVocabularyValue_IsWritten" methodname="L1_RealUpdateAgainstVocabularyValue_IsWritten" classname="ScormScenarioApiTests" runstate="Runnable" seed="70886900" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.000944" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1108" name="L2_NonFiniteScores_AreRejectedBeforeWriting" fullname="ScormScenarioApiTests.L2_NonFiniteScores_AreRejectedBeforeWriting" methodname="L2_NonFiniteScores_AreRejectedBeforeWriting" classname="ScormScenarioApiTests" runstate="Runnable" seed="1563081087" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002157" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1109" name="L3_DuplicatedObjectiveLinks_AreWrittenOnce" fullname="ScormScenarioApiTests.L3_DuplicatedObjectiveLinks_AreWrittenOnce" methodname="L3_DuplicatedObjectiveLinks_AreWrittenOnce" classname="ScormScenarioApiTests" runstate="Runnable" seed="71044425" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001298" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1110" name="L4_IdsWithWhitespaceOrTooLong_AreRejected" fullname="ScormScenarioApiTests.L4_IdsWithWhitespaceOrTooLong_AreRejected" methodname="L4_IdsWithWhitespaceOrTooLong_AreRejected" classname="ScormScenarioApiTests" runstate="Runnable" seed="857653126" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001287" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1098" name="LegacyAddAndUpdateObjective_SkipEmptyAndUnchangedValues" fullname="ScormScenarioApiTests.LegacyAddAndUpdateObjective_SkipEmptyAndUnchangedValues" methodname="LegacyAddAndUpdateObjective_SkipEmptyAndUnchangedValues" classname="ScormScenarioApiTests" runstate="Runnable" seed="64271408" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002045" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1099" name="LegacyUpdateInteraction_SkipsEmptyValues" fullname="ScormScenarioApiTests.LegacyUpdateInteraction_SkipsEmptyValues" methodname="LegacyUpdateInteraction_SkipsEmptyValues" classname="ScormScenarioApiTests" runstate="Runnable" seed="206999881" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001736" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1096" name="RecordInteraction_KeepsOwnIdAndLinksObjectivesById" fullname="ScormScenarioApiTests.RecordInteraction_KeepsOwnIdAndLinksObjectivesById" methodname="RecordInteraction_KeepsOwnIdAndLinksObjectivesById" classname="ScormScenarioApiTests" runstate="Runnable" seed="360586580" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002042" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1097" name="RecordInteraction_WithoutIdAndWithUnsetValues_GeneratesIdAndSendsNoEmptyValues" fullname="ScormScenarioApiTests.RecordInteraction_WithoutIdAndWithUnsetValues_GeneratesIdAndSendsNoEmptyValues" methodname="RecordInteraction_WithoutIdAndWithUnsetValues_GeneratesIdAndSendsNoEmptyValues" classname="ScormScenarioApiTests" runstate="Runnable" seed="319725695" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002290" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1095" name="ScoreData_FromRaw_ComputesClampedScaled" fullname="ScormScenarioApiTests.ScoreData_FromRaw_ComputesClampedScaled" methodname="ScoreData_FromRaw_ComputesClampedScaled" classname="ScormScenarioApiTests" runstate="Runnable" seed="244660725" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.000841" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1100" name="ScormCall_ReportsEveryOperationWithLmsErrorCodes" fullname="ScormScenarioApiTests.ScormCall_ReportsEveryOperationWithLmsErrorCodes" methodname="ScormCall_ReportsEveryOperationWithLmsErrorCodes" classname="ScormScenarioApiTests" runstate="Runnable" seed="1231912923" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.003507" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1111" name="ScormCall_ThrowingHandler_DoesNotBreakTheApiCall" fullname="ScormScenarioApiTests.ScormCall_ThrowingHandler_DoesNotBreakTheApiCall" methodname="ScormCall_ThrowingHandler_DoesNotBreakTheApiCall" classname="ScormScenarioApiTests" runstate="Runnable" seed="1272831038" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.008078" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[InvalidOperationException: broken log UI
+ScormScenarioApiTests+<>c.<ScormCall_ThrowingHandler_DoesNotBreakTheApiCall>b__35_0 (ScormCallInfo info) (at Assets/SCORM/Tests/Editor/ScormScenarioApiTests.cs:607)
+ScormAPIWrapper.RaiseCall (ScormCallOperation operation, System.String element, System.String value, System.String result, System.Boolean succeeded, System.Int32 error, System.String errorText) (at Assets/SCORM/_Scripts/ScormAPIWrapper.cs:292)
+UnityEngine.Debug:LogException(Exception)
+ScormAPIWrapper:RaiseCall(ScormCallOperation, String, String, String, Boolean, Int32, String) (at Assets/SCORM/_Scripts/ScormAPIWrapper.cs:294)
+ScormAPIWrapper:SetValue(String, String) (at Assets/SCORM/_Scripts/ScormAPIWrapper.cs:224)
+ScormManager:SetAndCache(String, String) (at Assets/SCORM/_Scripts/ScormManager.cs:171)
+ScormManager:SetValue(String, String) (at Assets/SCORM/_Scripts/ScormManager.cs:272)
+ScormManager:SetLocation(String) (at Assets/SCORM/_Scripts/ScormManager.cs:930)
+ScormScenarioApiTests:ScormCall_ThrowingHandler_DoesNotBreakTheApiCall() (at Assets/SCORM/Tests/Editor/ScormScenarioApiTests.cs:611)
+System.Reflection.MethodBase:Invoke(Object, Object[])
+NUnit.Framework.Internal.Reflect:InvokeMethod(MethodInfo, Object, Object[])
+NUnit.Framework.Internal.MethodWrapper:Invoke(Object, Object[])
+NUnit.Framework.Internal.Commands.TestMethodCommand:RunNonAsyncTestMethod(ITestExecutionContext)
+NUnit.Framework.Internal.Commands.TestMethodCommand:RunTestMethod(ITestExecutionContext)
+NUnit.Framework.Internal.Commands.TestMethodCommand:Execute(ITestExecutionContext)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions()
+
+]]></output>
+        </test-case>
+        <test-case id="1094" name="UpdateScoreAndStatus_WriteOnlyChangedAndNeverEmpty" fullname="ScormScenarioApiTests.UpdateScoreAndStatus_WriteOnlyChangedAndNeverEmpty" methodname="UpdateScoreAndStatus_WriteOnlyChangedAndNeverEmpty" classname="ScormScenarioApiTests" runstate="Runnable" seed="679948997" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002630" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1087" name="UpsertObjective_ChangedScore_WritesOnlyChangedFields" fullname="ScormScenarioApiTests.UpsertObjective_ChangedScore_WritesOnlyChangedFields" methodname="UpsertObjective_ChangedScore_WritesOnlyChangedFields" classname="ScormScenarioApiTests" runstate="Runnable" seed="62673130" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001707" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1088" name="UpsertObjective_IdLoadedFromLms_UpdatesThatIndexAndComparesRealsNumerically" fullname="ScormScenarioApiTests.UpsertObjective_IdLoadedFromLms_UpdatesThatIndexAndComparesRealsNumerically" methodname="UpsertObjective_IdLoadedFromLms_UpdatesThatIndexAndComparesRealsNumerically" classname="ScormScenarioApiTests" runstate="Runnable" seed="334467363" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001352" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1090" name="UpsertObjective_InvalidValues_ThrowBeforeAnyWrite" fullname="ScormScenarioApiTests.UpsertObjective_InvalidValues_ThrowBeforeAnyWrite" methodname="UpsertObjective_InvalidValues_ThrowBeforeAnyWrite" classname="ScormScenarioApiTests" runstate="Runnable" seed="24122423" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001996" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1085" name="UpsertObjective_NewId_AppendsWithOwnIdWrittenFirst" fullname="ScormScenarioApiTests.UpsertObjective_NewId_AppendsWithOwnIdWrittenFirst" methodname="UpsertObjective_NewId_AppendsWithOwnIdWrittenFirst" classname="ScormScenarioApiTests" runstate="Runnable" seed="257610019" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.002311" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1089" name="UpsertObjective_OnlyStatus_WritesIdAndStatusOnly" fullname="ScormScenarioApiTests.UpsertObjective_OnlyStatus_WritesIdAndStatusOnly" methodname="UpsertObjective_OnlyStatus_WritesIdAndStatusOnly" classname="ScormScenarioApiTests" runstate="Runnable" seed="1549329250" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001450" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1091" name="UpsertObjective_Resume_FindsObjectivesLoadedFromLmsInsteadOfDuplicating" fullname="ScormScenarioApiTests.UpsertObjective_Resume_FindsObjectivesLoadedFromLmsInsteadOfDuplicating" methodname="UpsertObjective_Resume_FindsObjectivesLoadedFromLmsInsteadOfDuplicating" classname="ScormScenarioApiTests" runstate="Runnable" seed="1802203522" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.003690" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1086" name="UpsertObjective_SameDataTwice_SecondCallWritesNothing" fullname="ScormScenarioApiTests.UpsertObjective_SameDataTwice_SecondCallWritesNothing" methodname="UpsertObjective_SameDataTwice_SecondCallWritesNothing" classname="ScormScenarioApiTests" runstate="Runnable" seed="160310788" result="Passed" start-time="2026-10-06 12:31:48Z" end-time="2026-10-06 12:31:48Z" duration="0.001524" asserts="0">
+          <properties>
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[Saving results to: C:/Users/INVELON/AppData/LocalLow/Richard Stals/SCORM Testbed\TestResults.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

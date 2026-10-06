@@ -4,6 +4,7 @@
  * Unity-SCORM Integration Manager
  * 
  * Copyright (C) 2015, Richard Stals (http://stals.com.au)
+ * This Version removes multi-threading which is not supported by WebGL Player
  * ==========================================
  * 
  * 
@@ -30,15 +31,22 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+
+using System.Runtime.InteropServices;
 
 /// <summary>
 /// The main interface between your Unity3D code and the SCORM API (via the ScormManager and the ScormAPIWrapper).
 /// </summary>
-public class ScormManager : MonoBehaviour {
+public class ScormManager : MonoBehaviour
+{
 
-	/// <summary>The reference to the ScormAPIWrapper object (the bridge between Unity's C# and scorm.js</summary>
-	static ScormAPIWrapper scormAPIWrapper;
+	/// <summary>Debug output: browser console in WebGL, Unity console elsewhere.</summary>
+	private static void wgldebugPrint(string str) {
+		ScormAPIWrapper.DebugPrint(str);
+	}
+
+/// <summary>The reference to the ScormAPIWrapper object (the bridge between Unity's C# and scorm.js</summary>
+static ScormAPIWrapper scormAPIWrapper;
 
 	/// <summary>The name of this object, used for callbacks from the ScormAPIWrapper</summary>
 	static string objectName;
@@ -49,19 +57,16 @@ public class ScormManager : MonoBehaviour {
 	/// <summary>The student record data returned from the LMS via SCORM</summary>
 	static StudentRecord studentRecord;
 
-	/// <summary>Track the main thread to stop the ScormAPIWrapper being called from the main thread and blacking Unity.</summary>
-	static int mainThreadID;
 
 	/// <summary>
 	/// Begin the ScormManager. Wait for "Scorm_Initialize_Complete" after Start();
 	/// </summary>
 	/// <remarks>
 	/// Triggered by the Unity Engine, this function begins reading in all the data from the LMS. Launches
-	/// a thread, that will fire "Scorm_Initialize_Complete" when ready.
+	/// Initialize(), that will fire "Scorm_Initialize_Complete" when ready.
 	/// </remarks> 
 	void Start() {
 		objectName = this.gameObject.name;
-		mainThreadID = System.Threading.Thread.CurrentThread.ManagedThreadId;
 		Initialize();
 	}
 
@@ -82,26 +87,14 @@ public class ScormManager : MonoBehaviour {
 	/// Read the student data in from the LMS
 	/// </summary>
 	/// <remarks>
-	/// Launches a seperate thread. Calls the javascript layer to read in all the data. 
+	/// Calls the javascript layer to read in all the data. 
 	/// Will fire "Scorm_Initialize_Complete" when the StudentRecord datamodel is ready to be manipulated
 	/// </remarks> 
 	public static void Initialize() {
-		System.Threading.ThreadStart start = new System.Threading.ThreadStart(Initialize_imp);
-		System.Threading.Thread t = new System.Threading.Thread(start);
-		t.Start();
-	}
-
-	/// <summary>
-	/// Internal implementation of communication with the LMS
-	/// </summary>
-	/// <remarks>
-	/// Read all the data from the LMS into the internal data structure. Runs in a seperate thread.
-	/// Will fire "Scorm_Initialize_Complete" when the datamodel is ready to be manipulated
-	/// </remarks> 
-	private static void Initialize_imp() {
-		if(!CheckThread())return;
+		lmsValues.Clear();
 		scormAPIWrapper = new ScormAPIWrapper(objectName,"ScormValueCallback");
 		scormAPIWrapper.Initialize();
+		IsLmsConnected = scormAPIWrapper.IsApiFound && scormAPIWrapper.IsInitialized;
 		try {
 			if(scormAPIWrapper.IsScorm2004)
 			{
@@ -112,43 +105,123 @@ public class ScormManager : MonoBehaviour {
 				throw new System.InvalidOperationException("SCORM 1.2 not currently supported");  //TODO: Not currently supported.
 			}
 		} catch(Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***Initialize_imp***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );	
+            wgldebugPrint("***Initialize***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
 		}
 		initialized = true;
-		GameObject.Find(objectName).BroadcastMessage("Scorm_Initialize_Complete",SendMessageOptions.DontRequireReceiver);
+		GameObject manager = FindManagerObject();
+		if (manager != null)
+			manager.BroadcastMessage("Scorm_Initialize_Complete",SendMessageOptions.DontRequireReceiver);
 	}
 
+	/// <summary>True when an LMS API was found and accepted Initialize (always true with the Editor backend).</summary>
+	public static bool IsLmsConnected { get; private set; }
 
-
-	/// <summary>
-	/// Check that the running thread is not the Unity Thread
-	/// </summary>
-	/// <remarks>
-	/// Running some of the ScormManager function in the Unity thread will block the unity message queue
-	/// resulting in deadlock. This checks to make sure that will not occur.
-	/// </remarks> 
-	public static bool CheckThread() {
-		if(mainThreadID == System.Threading.Thread.CurrentThread.ManagedThreadId) {
-			UnityEngine.Debug.LogError("This scorm manager command must not be called from the main thread.");
-			return false;	
-		}
-		return true;
-	}
+	/// <summary>True once Initialize() has run and the StudentRecord has been loaded.</summary>
+	public static bool IsInitialized { get { return initialized; } }
 
 	/// <summary>
-	/// Wait until the ScormManager is ready.
+	/// Raised after every SCORM API call (Initialize, GetValue, SetValue, Commit, Terminate) with its result and the LMS
+	/// error code. Same event as <see cref="ScormAPIWrapper.CallCompleted"/>; use it to show an API log in the UI.
 	/// </summary>
 	/// <remarks>
-	/// Should not be called by users. Will block the thread and sleep, so cannot be called from
-	/// the main Unity thread.
+	/// Static event: subscribe in OnEnable and unsubscribe in OnDisable, otherwise a destroyed MonoBehaviour keeps
+	/// receiving calls. Handlers should not call the SCORM API; if they do, those nested calls work but are not
+	/// reported again (no recursion).
 	/// </remarks>
-	private static void WaitForInitialize() {
-		if(!CheckThread())return;
-		
-		while(initialized == false) {
-			System.Threading.Thread.Sleep(25);	
-		}
+	public static event Action<ScormCallInfo> ScormCall {
+		add { ScormAPIWrapper.CallCompleted += value; }
+		remove { ScormAPIWrapper.CallCompleted -= value; }
 	}
+
+	/// <summary>
+	/// Last value of each data model element read from the LMS (error 0, not empty) or accepted by it in this session.
+	/// Used to skip redundant writes; StudentRecord cannot be used for that because its floats cannot tell "not set"
+	/// from 0 and callers (e.g. AnObjective) mutate the StudentRecord objects before calling Update*.
+	/// </summary>
+	static readonly Dictionary<string, string> lmsValues = new Dictionary<string, string>();
+
+	/// <summary>GetValue that remembers the value for <see cref="WriteIfChanged"/>.</summary>
+	static string LoadValue(string identifier) {
+		string value = scormAPIWrapper.GetValue(identifier);
+		if (scormAPIWrapper.IsApiFound && scormAPIWrapper.LastErrorCode == 0 && !string.IsNullOrEmpty(value))
+			lmsValues[identifier] = value;
+		return value;
+	}
+
+	/// <summary>
+	/// True if the LMS rejected at least one write during the last UpsertObjective, RecordInteraction, UpdateScore,
+	/// UpdateStatus or UpdateProgressMeasure call (rejected values are not cached, so the next call retries them).
+	/// </summary>
+	public static bool LastWriteFailed { get { return LastWriteFailures > 0; } }
+
+	/// <summary>Number of writes the LMS rejected during the last call of the scenario API (see LastWriteFailed).</summary>
+	public static int LastWriteFailures { get; private set; }
+
+	/// <summary>SCORM error code of the first write rejected during that call (0 = none, or no LMS API).</summary>
+	public static int LastWriteErrorCode { get; private set; }
+
+	static void BeginWrites() {
+		LastWriteFailures = 0;
+		LastWriteErrorCode = 0;
+	}
+
+	/// <summary>SetValue that remembers the value when the LMS accepts it, and counts rejections.</summary>
+	static bool SetAndCache(string identifier, string value) {
+		value = value ?? "";
+		bool ok = scormAPIWrapper.SetValue(identifier, value);
+		if (ok) {
+			lmsValues[identifier] = value;
+		} else {
+			if (LastWriteFailures == 0)
+				LastWriteErrorCode = scormAPIWrapper.LastErrorCode;
+			LastWriteFailures++;
+		}
+		return ok;
+	}
+
+	/// <summary>
+	/// Writes value unless it is null/empty (never sent: invalid for vocabularies, scores and ids) or equal to the
+	/// value the LMS already has (reals are compared numerically: "0.50" == "0.5").
+	/// </summary>
+	/// <returns>True if written or skipped; false only if the LMS rejected the write.</returns>
+	static bool WriteIfChanged(string identifier, string value, bool isReal) {
+		if (string.IsNullOrEmpty(value))
+			return true;
+		string known;
+		if (lmsValues.TryGetValue(identifier, out known)) {
+			if (known == value)
+				return true;
+			float knownReal, newReal;
+			if (isReal && TryParseReal(known, out knownReal) && TryParseReal(value, out newReal) && Math.Abs(knownReal - newReal) < 1e-7f)
+				return true;
+		}
+		return SetAndCache(identifier, value);
+	}
+
+	static bool HasKnownValue(string identifier) {
+		string known;
+		return lmsValues.TryGetValue(identifier, out known) && known.Length > 0;
+	}
+
+	static float? KnownReal(string identifier) {
+		string known;
+		float value;
+		if (lmsValues.TryGetValue(identifier, out known) && TryParseReal(known, out value))
+			return value;
+		return null;
+	}
+
+	static bool TryParseReal(string str, out float value) {
+		return float.TryParse(str, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out value);
+	}
+
+	static GameObject FindManagerObject() {
+		if (string.IsNullOrEmpty(objectName))
+			return null;
+		return GameObject.Find(objectName);
+	}
+
+
 
 	/// <summary>
 	/// Used for the Javascript layer to communicate back to the Unity layer.
@@ -163,43 +236,26 @@ public class ScormManager : MonoBehaviour {
 	/// is used by the ScormAPIWrapper bridge to figure out what API call this message answers. This complexity is due to the 
 	/// asyncronous nature of the UNITY/Javascript interface.
 	/// </remarks> 
+	[Obsolete("The SCORM bridge is synchronous now; ScormValueCallback does nothing.")]
 	public void ScormValueCallback(string value) {
-		try{
-			scormAPIWrapper.SetCallbackValue(value);
-		}catch(Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***ScormValueCallback***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source);
-		}
-		
 	}
 
 	/// <summary>
 	/// Call the final Commit.  It is the responsibility of the users of this class to write data to the LMS as you go (i.e. call SetValue())
 	/// </summary>
 	/// <remarks>
-	/// Calls Commit on scorm.js. Launchs a seperate thread for the work - will fire "Scorm_Commit_Complete"
+	/// Calls Commit on scorm.js. will fire "Scorm_Commit_Complete"
 	/// when operation is complete.
 	/// </remarks> 
 	public static void Commit() 	{
-		System.Threading.ThreadStart start = new System.Threading.ThreadStart(CallFinalCommit);
-		System.Threading.Thread t = new System.Threading.Thread(start);
-		t.Start();
-	}
-
-	/// <summary>
-	/// Calls the final commit.
-	/// </summary>
-	/// <remarks>
-	/// This is the target function of the <see cref="Commit"/> function call.  Calls the Commit function in the ScormAPIWrapper
-	/// </remarks>
-	private static void CallFinalCommit() {
 		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
 			scormAPIWrapper.Commit();
 		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***CallFinalCommit***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
-		GameObject.Find(objectName).BroadcastMessage("Scorm_Commit_Complete");
+            wgldebugPrint("***CallFinalCommit***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
+		GameObject manager = FindManagerObject();
+		if (manager != null)
+			manager.BroadcastMessage("Scorm_Commit_Complete", SendMessageOptions.DontRequireReceiver);
 	}
 
 
@@ -207,407 +263,16 @@ public class ScormManager : MonoBehaviour {
 	/// Sets the value.
 	/// </summary>
 	/// <remarks>
-	/// Calls SetValue on scorm.js. Launchs a seperate thread for the work.
+	/// Calls SetValue on scorm.js.
 	/// </remarks> 
 	/// <param name="identifier">The dot notation identifier of the data model element to set.</param>
 	/// <param name="value">The string of the value to set.</param>
 	private static void SetValue(string identifier, string value) {
-		System.Threading.Thread thread = new System.Threading.Thread(() => CallSetValue(identifier,value));
-		thread.Start();
-	}
-
-	/// <summary>
-	/// Calls the set value.
-	/// </summary>
-	/// <remarks>
-	/// This is the target function of the <see cref="SetValue"/> function call.  Calls the Commit function in the ScormAPIWrapper
-	/// </remarks>
-	/// <param name="identifier">The dot notation identifier of the data model element to set.</param>
-	/// <param name="value">The string of the value to set.</param>
-	private static void CallSetValue(string identifier, string value) {
 		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
-			scormAPIWrapper.SetValue(identifier,value);
+			SetAndCache(identifier,value);
 		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***ERROR***CallSetValue***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
-
-	}
-
-	/// <summary>
-	/// Add a new Learner Interaction
-	/// </summary>
-	/// <remarks>
-	/// Calls SetValue on scorm.js. for each element in the LearnerInteractionRecord. Launches a seperate thread for the work.
-	/// This is the target function of the <see cref="AddInteraction"/> function call.
-	/// </remarks> 
-	/// <param name="interaction">Interaction.</param>
-	private static void CallAddInteraction(StudentRecord.LearnerInteractionRecord interaction) {
-		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
-
-			string identifier;
-			string strValue;
-
-			interaction.id = "urn:STALS:interaction-id-" + studentRecord.interactions.Count.ToString ();	//Override ID to ensure it is unique
-
-			//All other properties must be set by the caller
-			
-			//Set the interaction Values
-			int i = studentRecord.interactions.Count;
-
-			studentRecord.interactions.Add(interaction);
-			
-			identifier = "cmi.interactions."+i+".id";
-			strValue = interaction.id;
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.interactions."+i+".type";
-			strValue = CustomTypeToString (interaction.type);
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.interactions."+i+".timestamp";
-			strValue = String.Format("{0:s}", interaction.timeStamp);
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.interactions."+i+".weighting";
-			strValue = interaction.weighting.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.interactions."+i+".learner_response";
-			strValue = interaction.response;
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.interactions."+i+".result";
-			strValue = CustomTypeToString (interaction.result);
-			if (interaction.result == StudentRecord.ResultType.estimate) {
-				strValue = interaction.estimate.ToString();
-			}
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.interactions."+i+".latency";
-			strValue = secondsToTimeInterval(interaction.latency);
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.interactions."+i+".description";
-			strValue = interaction.description;
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			if(interaction.objectives != null) {
-				int objectivesCount = interaction.objectives.Count;
-				if(objectivesCount != 0) {
-					for (int x = 0; x < objectivesCount; x++) {
-						identifier = "cmi.interactions."+i+".objectives."+x+".id";
-						strValue = interaction.objectives[x].id;
-						scormAPIWrapper.SetValue(identifier,strValue);
-					}
-				}
-			}
-
-			if(interaction.correctResponses != null) {
-				int correctResponsesCount = interaction.correctResponses.Count;
-				if(correctResponsesCount != 0) {
-					for (int x = 0; x < correctResponsesCount; i++) {
-						identifier = "cmi.interactions."+i+".correct_responses."+x+".pattrern";
-						strValue = interaction.correctResponses[x].pattern;
-						scormAPIWrapper.SetValue(identifier,strValue);
-					}
-				}
-			}
-
-
-
-
-		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***CallAddInteraction***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
-	}
-	/// <summary>
-	/// Update an exitsing Learner Interaction
-	/// </summary>
-	/// <remarks>
-	/// Calls SetValue on scorm.js. for each element in the LearnerInteractionRecord. Launches a seperate thread for the work.
-	/// This is the target function of the <see cref="UpdateInteraction"/> function call.
-	/// </remarks> 
-	/// <param name="i">The index of the interaction in the existing LearnerInteraction.</param>
-	/// <param name="interaction">Interaction.</param>
-	private static void CallUpdateInteraction(int i, StudentRecord.LearnerInteractionRecord interaction) {
-		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
-			
-			string identifier;
-			string strValue;
-
-			interaction.timeStamp = DateTime.Now;														//Set timestamp to Now
-			//All other properties must be set by the caller
-			
-			//Set the interaction Values						
-			identifier = "cmi.interactions."+i+".type";
-			strValue = CustomTypeToString (interaction.type);
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.interactions."+i+".timestamp";
-			strValue = String.Format("{0:s}", interaction.timeStamp);
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.interactions."+i+".weighting";
-			strValue = interaction.weighting.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.interactions."+i+".learner_response";
-			strValue = interaction.response;
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.interactions."+i+".result";
-			strValue = CustomTypeToString (interaction.result);
-			if (interaction.result == StudentRecord.ResultType.estimate) {
-				strValue = interaction.estimate.ToString();
-			}
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.interactions."+i+".latency";
-			strValue = secondsToTimeInterval(interaction.latency);
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.interactions."+i+".description";
-			strValue = interaction.description;
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			int objectivesCount = interaction.objectives.Count;
-			if(objectivesCount != 0) {
-				for (int x = 0; x < objectivesCount; i++) {
-					identifier = "cmi.interactions."+i+".objectives."+x+".id";
-					strValue = interaction.objectives[x].id;
-					scormAPIWrapper.SetValue(identifier,strValue);
-				}
-			}
-
-			int correctResponsesCount = interaction.correctResponses.Count;
-			if(correctResponsesCount != 0) {
-				for (int x = 0; x < correctResponsesCount; i++) {
-					identifier = "cmi.interactions."+i+".correct_responses."+x+".pattrern";
-					strValue = interaction.correctResponses[x].pattern;
-					scormAPIWrapper.SetValue(identifier,strValue);
-				}
-			}
-			
-			studentRecord.interactions[i] = interaction;
-		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***CallUpdateInteraction***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
-	}
-
-	/// <summary>
-	/// Add a new Comment from Learner
-	/// </summary>
-	/// <remarks>
-	/// Calls SetValue on scorm.js. for each element in the CommentsFromLearner. Launches a seperate thread for the work.
-	/// This is the target function of the <see cref="AddCommentFromLearner"/> function call.
-	/// </remarks> 
-	/// <param name="comment">Comment.</param>
-	private static void CallAddCommentFromLearner(StudentRecord.CommentsFromLearner comment) {
-		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
-			
-			string identifier;
-			string strValue;
-
-			comment.timeStamp = DateTime.Now;														//Set timestamp to Now
-			//All other properties must be set by the caller
-			
-			//Set the Comment Values
-			int i = studentRecord.commentsFromLearner.Count;
-
-			studentRecord.commentsFromLearner.Add(comment);
-			
-			identifier = "cmi.comments_from_learner."+i+".comment";
-			strValue = comment.comment;
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.comments_from_learner."+i+".location";
-			strValue = comment.location;
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.comments_from_learner."+i+".timestamp";
-			strValue = String.Format("{0:s}", comment.timeStamp);
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-
-			
-		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***CallAddCommentFromLearner***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
-	}
-
-	/// <summary>
-	/// Update an existing Comment from Learner
-	/// </summary>
-	/// <remarks>
-	/// Calls SetValue on scorm.js. for each element in the CommentsFromLearner. Launches a seperate thread for the work.
-	/// This is the target function of the <see cref="UpdateCommentFromLearner"/> function call.
-	/// </remarks> 
-	/// <param name="i">The index.</param>
-	/// <param name="comment">Comment.</param>
-	private static void CallUpdateCommentFromLearner(int i, StudentRecord.CommentsFromLearner comment) {
-		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
-			
-			string identifier;
-			string strValue;
-			
-			comment.timeStamp = DateTime.Now;														//Set timestamp to Now
-			//All other properties must be set by the caller
-			
-			//Set the Comment Values
-			identifier = "cmi.comments_from_learner."+i+".comment";
-			strValue = comment.comment;
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.comments_from_learner."+i+".location";
-			strValue = comment.location;
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.comments_from_learner."+i+".timestamp";
-			strValue = String.Format("{0:s}", comment.timeStamp);
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			studentRecord.commentsFromLearner[i] = comment;
-		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***CallUpdateCommentFromLearner***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
-	}
-
-	/// <summary>
-	/// Add a new Objective
-	/// </summary>
-	/// <remarks>
-	/// Calls SetValue on scorm.js. for each element in the Objectives. Launches a seperate thread for the work.
-	/// This is the target function of the <see cref="AddObjective"/> function call.
-	/// </remarks>
-	/// <param name="objective">Objective.</param>
-	private static void CallAddObjective(StudentRecord.Objectives objective) {
-		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
-			
-			string identifier;
-			string strValue;
-
-			objective.id = "urn:STALS:objective-id-" + studentRecord.objectives.Count.ToString ();	//Override ID to ensure it is uniqu												//Set timestamp to Now
-			//All other properties must be set by the caller
-			
-			//Set the Objective Values
-			int i = studentRecord.objectives.Count;
-
-			studentRecord.objectives.Add(objective);
-
-			identifier = "cmi.objectives."+i+".id";
-			strValue = objective.id;
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".score.scaled";
-			strValue = objective.score.scaled.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".score.raw";
-			strValue = objective.score.raw.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".score.max";
-			strValue = objective.score.max.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".score.min";
-			strValue = objective.score.min.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".success_status";
-			strValue = CustomTypeToString( objective.successStatus);
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".completion_status";
-			strValue = CustomTypeToString( objective.completionStatus);
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".progress_measure";
-			strValue = objective.progressMeasure.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-
-			identifier = "cmi.objectives."+i+".description";
-			strValue = objective.description;
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-
-			
-		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***CallAddObjective***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
-	}
-
-	/// <summary>
-	/// Update an existing Objective
-	/// </summary>
-	/// <remarks>
-	/// Calls SetValue on scorm.js. for each element in the Objectives. Launches a seperate thread for the work.
-	/// This is the target function of the <see cref="UpdateObjective"/> function call.
-	/// </remarks>
-	/// <param name="i">The index.</param>
-	/// <param name="objective">Objective.</param>
-	private static void CallUpdateObjective(int i, StudentRecord.Objectives objective) {
-		try {
-			if(!CheckThread())return;
-			WaitForInitialize(); 
-			
-			string identifier;
-			string strValue;
-
-			//Set the Objective Values
-			identifier = "cmi.objectives."+i+".id";
-			strValue = objective.id;
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".score.scaled";
-			strValue = objective.score.scaled.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".score.raw";
-			strValue = objective.score.raw.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".score.max";
-			strValue = objective.score.max.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".score.min";
-			strValue = objective.score.min.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".success_status";
-			strValue = CustomTypeToString( objective.successStatus);
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".completion_status";
-			strValue = CustomTypeToString( objective.completionStatus);
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".progress_measure";
-			strValue = objective.progressMeasure.ToString();
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			identifier = "cmi.objectives."+i+".description";
-			strValue = objective.description;
-			scormAPIWrapper.SetValue(identifier,strValue);
-			
-			studentRecord.objectives[i] = objective;
-			
-		} catch(System.Exception e) {
-			UnityEngine.Application.ExternalCall("DebugPrint", "***CallUpdateObjective***" + e.Message +"<br/>" + e.StackTrace + "<br/>" + e.Source );
-		}
+            wgldebugPrint("***ERROR***CallSetValue***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
 	}
 
 	/// <summary>
@@ -618,7 +283,11 @@ public class ScormManager : MonoBehaviour {
 	/// Be sure to save your data to the LMS by calling Commit first, then waiting for Scorm_Commit_Complete.
 	/// </remarks> 
 	public static void Terminate() {
-		scormAPIWrapper.Terminate();
+		try {
+			scormAPIWrapper.Terminate();
+		} catch(System.Exception e) {
+            wgldebugPrint("***Terminate***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
 	}
 
 	/// <summary>
@@ -630,8 +299,9 @@ public class ScormManager : MonoBehaviour {
 	/// <remarks>
 	/// Simply sends the log data down to child objects, which should handle the logging tasks.
 	/// </remarks> 
+	[UnityEngine.Scripting.Preserve]	// called by name through BroadcastMessage/SendMessage
 	public void LogMessage(object text) {
-		GameObject.Find(objectName).BroadcastMessage("Log",text,UnityEngine.SendMessageOptions.DontRequireReceiver);
+		DoLogMessage(text);
 	}
 
 	/// <summary>
@@ -639,7 +309,9 @@ public class ScormManager : MonoBehaviour {
 	/// </summary>
 	/// <param name="text">Text.</param>
 	public static void DoLogMessage(object text) {
-		GameObject.Find(objectName).BroadcastMessage("Log",text,UnityEngine.SendMessageOptions.DontRequireReceiver);
+		GameObject manager = FindManagerObject();
+		if (manager != null)
+			manager.BroadcastMessage("Log",text,UnityEngine.SendMessageOptions.DontRequireReceiver);
 	}
 	
 	/// <summary>
@@ -663,6 +335,8 @@ public class ScormManager : MonoBehaviour {
 	public static void SetCompletionStatus(StudentRecord.CompletionStatusType value) {
 		string identifier = "cmi.completion_status";
 		string strValue = CustomTypeToString(value);
+		if (strValue.Length == 0)																//not_set: "" is not a valid vocabulary value
+			return;
 		studentRecord.completionStatus = value;
 		SetValue (identifier, strValue);
 
@@ -715,8 +389,35 @@ public class ScormManager : MonoBehaviour {
 	/// ScormManager.AddCommentFromLearner(comment);
 	/// </c>
 	public static void AddCommentFromLearner(StudentRecord.CommentsFromLearner comment) {
-		System.Threading.Thread thread = new System.Threading.Thread (() => CallAddCommentFromLearner (comment));
-		thread.Start ();
+		try {
+			string identifier;
+			string strValue;
+
+			comment.timeStamp = DateTime.Now;														//Set timestamp to Now
+			//All other properties must be set by the caller
+
+			//Set the Comment Values
+			int i = studentRecord.commentsFromLearner.Count;
+
+			studentRecord.commentsFromLearner.Add(comment);
+
+			identifier = "cmi.comments_from_learner."+i+".comment";
+			strValue = comment.comment;
+			SetAndCache(identifier,strValue);
+
+			identifier = "cmi.comments_from_learner."+i+".location";
+			strValue = comment.location;
+			SetAndCache(identifier,strValue);
+
+			identifier = "cmi.comments_from_learner."+i+".timestamp";
+			strValue = ScormFormat.ToTimestamp(comment.timeStamp);
+			SetAndCache(identifier,strValue);
+
+
+
+		} catch(System.Exception e) {
+            wgldebugPrint("***AddCommentFromLearner***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
 	}
 
 	/// <summary>
@@ -733,8 +434,30 @@ public class ScormManager : MonoBehaviour {
 	/// ScormManager.UpdateCommentFromLearner(index, comment);
 	/// </c>
 	public static void UpdateCommentFromLearner(int index, StudentRecord.CommentsFromLearner comment) {
-		System.Threading.Thread thread = new System.Threading.Thread (() => CallUpdateCommentFromLearner (index, comment));
-		thread.Start ();
+		try {
+			string identifier;
+			string strValue;
+
+			comment.timeStamp = DateTime.Now;														//Set timestamp to Now
+			//All other properties must be set by the caller
+
+			//Set the Comment Values
+			identifier = "cmi.comments_from_learner."+index+".comment";
+			strValue = comment.comment;
+			SetAndCache(identifier,strValue);
+
+			identifier = "cmi.comments_from_learner."+index+".location";
+			strValue = comment.location;
+			SetAndCache(identifier,strValue);
+
+			identifier = "cmi.comments_from_learner."+index+".timestamp";
+			strValue = ScormFormat.ToTimestamp(comment.timeStamp);
+			SetAndCache(identifier,strValue);
+
+			studentRecord.commentsFromLearner[index] = comment;
+		} catch(System.Exception e) {
+            wgldebugPrint("***UpdateCommentFromLearner***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
 	}
 
 	/// <summary>
@@ -785,6 +508,8 @@ public class ScormManager : MonoBehaviour {
 	public static void SetExit(StudentRecord.ExitType value) {
 		string identifier = "cmi.exit";
 		string strValue = CustomTypeToString(value);
+		if (strValue.Length == 0)
+			return;
 		SetValue (identifier, strValue);
 	}
 
@@ -847,8 +572,89 @@ public class ScormManager : MonoBehaviour {
 	/// ScormManager.AddInteraction (newRecord);\n
 	/// </c>
 	public static void AddInteraction(StudentRecord.LearnerInteractionRecord interaction) {
-		System.Threading.Thread thread = new System.Threading.Thread (() => CallAddInteraction (interaction));
-		thread.Start ();
+		try {
+			interaction.id = "urn:STALS:interaction-id-" + studentRecord.interactions.Count.ToString ();	//Override ID to ensure it is unique (use RecordInteraction to keep your own id)
+			//All other properties must be set by the caller
+
+			int i = studentRecord.interactions.Count;
+
+			if (interaction.timeStamp.Year < 1970)											//SCORM time must be >= 1970; an unset DateTime would be rejected
+				interaction.timeStamp = DateTime.Now;
+
+			//Added locally only if the LMS accepted the id (keeps interactions.Count == cmi.interactions._count),
+			//or when there is no LMS at all (the list then only feeds the UI).
+			if (WriteInteraction(i, interaction, true) || !IsLmsConnected)
+				studentRecord.interactions.Add(interaction);
+		} catch(System.Exception e) {
+            wgldebugPrint("***AddInteraction***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
+	}
+
+	/// <summary>
+	/// Appends an interaction keeping its own id and links it to objectives by id.
+	/// </summary>
+	/// <remarks>
+	/// cmi.interactions.n.id is written first (the id of the interaction if set, otherwise
+	/// <see cref="GetNextInteractionId"/>), then type, cmi.interactions.n.objectives.m.id (interaction.objectives plus
+	/// objectiveIds; empty and repeated ids are skipped), timestamp (now if unset), correct_responses, weighting,
+	/// learner_response, result, latency (only if &gt; 0) and description. Empty values and not_set vocabularies are
+	/// never sent; learner_response and correct_responses are skipped while the type is not_set (the LMS would answer
+	/// 408). Interactions are a journal: a repeated interaction id creates a new entry, it does not update the old one.
+	/// </remarks>
+	/// <returns>The index n of the new interaction, or -1 if the LMS rejected its id (the interaction is not added).</returns>
+	/// <param name="interaction">Interaction to record (its objectives list is extended with objectiveIds).</param>
+	/// <param name="objectiveIds">Ids of the objectives (e.g. "scenario-01") this interaction contributes to.</param>
+	/// <exception cref="InvalidOperationException">ScormManager is not initialized.</exception>
+	/// <exception cref="ArgumentNullException">interaction is null.</exception>
+	public static int RecordInteraction(StudentRecord.LearnerInteractionRecord interaction, params string[] objectiveIds) {
+		bool allWritten;
+		return RecordInteraction(interaction, out allWritten, objectiveIds);
+	}
+
+	/// <summary>
+	/// Same as <see cref="RecordInteraction(StudentRecord.LearnerInteractionRecord, string[])"/>; allWritten is false if
+	/// the LMS rejected any field (see also LastWriteFailed / LastWriteErrorCode).
+	/// </summary>
+	/// <exception cref="ArgumentException">An id (interaction or objective) contains whitespace or is longer than 4000 characters.</exception>
+	public static int RecordInteraction(StudentRecord.LearnerInteractionRecord interaction, out bool allWritten, params string[] objectiveIds) {
+		RequireStudentRecord();
+		BeginWrites();
+		allWritten = false;
+		if (interaction == null)
+			throw new ArgumentNullException("interaction");
+		if (!string.IsNullOrEmpty(interaction.id))
+			ValidateIdentifier(interaction.id, "interaction id");
+		if (objectiveIds != null)
+			foreach (string objectiveId in objectiveIds)
+				if (!string.IsNullOrEmpty(objectiveId))
+					ValidateIdentifier(objectiveId, "objective id");
+		if (interaction.objectives != null)
+			foreach (StudentRecord.LearnerInteractionObjective link in interaction.objectives)
+				if (link != null && !string.IsNullOrEmpty(link.id))
+					ValidateIdentifier(link.id, "objective id");
+
+		if (string.IsNullOrEmpty(interaction.id))
+			interaction.id = GetNextInteractionId();
+		if (interaction.objectives == null)
+			interaction.objectives = new List<StudentRecord.LearnerInteractionObjective>();
+		if (objectiveIds != null) {
+			foreach (string objectiveId in objectiveIds) {
+				if (string.IsNullOrEmpty(objectiveId) || interaction.objectives.Exists(o => o != null && o.id == objectiveId))
+					continue;
+				StudentRecord.LearnerInteractionObjective link = new StudentRecord.LearnerInteractionObjective();
+				link.id = objectiveId;
+				interaction.objectives.Add(link);
+			}
+		}
+		if (interaction.timeStamp.Year < 1970)
+			interaction.timeStamp = DateTime.Now;
+
+		int index = studentRecord.interactions.Count;
+		if (!WriteInteraction(index, interaction, true))
+			return -1;
+		studentRecord.interactions.Add(interaction);
+		allWritten = !LastWriteFailed;
+		return index;
 	}
 
 	public static string GetNextInteractionId() {
@@ -876,8 +682,75 @@ public class ScormManager : MonoBehaviour {
 	/// ScormManager.UpdateInteraction (index, newRecord);\n
 	/// </c>
 	public static void UpdateInteraction(int index, StudentRecord.LearnerInteractionRecord interaction) {
-		System.Threading.Thread thread = new System.Threading.Thread (() => CallUpdateInteraction (index,interaction));
-		thread.Start ();
+		try {
+			interaction.timeStamp = DateTime.Now;														//Set timestamp to Now
+			//All other properties must be set by the caller
+
+			WriteInteraction(index, interaction, false);
+			studentRecord.interactions[index] = interaction;
+		} catch(System.Exception e) {
+            wgldebugPrint("***UpdateInteraction***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
+	}
+
+	/// <summary>
+	/// Writes cmi.interactions.index: id first, type before learner_response/correct_responses (408 otherwise),
+	/// skipping empty values and values the LMS already has.
+	/// </summary>
+	/// <returns>False only if the id of a new interaction was rejected (nothing else is written then).</returns>
+	static bool WriteInteraction(int index, StudentRecord.LearnerInteractionRecord interaction, bool isNew) {
+		string p = "cmi.interactions." + index + ".";
+
+		if (isNew) {
+			if (!SetAndCache(p + "id", interaction.id))
+				return false;
+		} else {
+			WriteIfChanged(p + "id", interaction.id, false);
+		}
+
+		string type = CustomTypeToString(interaction.type);
+		WriteIfChanged(p + "type", type, false);
+		bool typeKnown = type.Length > 0 || HasKnownValue(p + "type");
+
+		if (interaction.objectives != null) {
+			int x = 0;
+			HashSet<string> linked = new HashSet<string>(StringComparer.Ordinal);
+			foreach (StudentRecord.LearnerInteractionObjective objective in interaction.objectives) {
+				if (objective == null || string.IsNullOrEmpty(objective.id) || !linked.Add(objective.id))
+					continue;	//a repeated id in cmi.interactions.n.objectives is rejected by the LMS (351)
+				WriteIfChanged(p + "objectives." + x + ".id", objective.id, false);
+				x++;
+			}
+		}
+
+		if (interaction.timeStamp.Year >= 1970)
+			WriteIfChanged(p + "timestamp", ScormFormat.ToTimestamp(interaction.timeStamp), false);
+
+		if (typeKnown && interaction.correctResponses != null) {
+			int x = 0;
+			foreach (StudentRecord.LearnerInteractionCorrectResponse correctResponse in interaction.correctResponses) {
+				if (correctResponse == null || string.IsNullOrEmpty(correctResponse.pattern))
+					continue;
+				WriteIfChanged(p + "correct_responses." + x + ".pattern", correctResponse.pattern, false);
+				x++;
+			}
+		}
+
+		WriteIfChanged(p + "weighting", ScormFormat.ToReal(interaction.weighting), true);
+
+		if (typeKnown)
+			WriteIfChanged(p + "learner_response", interaction.response, false);
+
+		if (interaction.result == StudentRecord.ResultType.estimate)
+			WriteIfChanged(p + "result", ScormFormat.ToReal(interaction.estimate), true);
+		else
+			WriteIfChanged(p + "result", CustomTypeToString(interaction.result), false);
+
+		if (interaction.latency > 0f)
+			WriteIfChanged(p + "latency", secondsToTimeInterval(interaction.latency), false);
+
+		WriteIfChanged(p + "description", interaction.description, false);
+		return true;
 	}
 
 	/// <summary>
@@ -939,7 +812,7 @@ public class ScormManager : MonoBehaviour {
 	/// </c>
 	public static void SetLearnerPreference(StudentRecord.LearnerPreference learnerPreference) {
 		string identifier = "cmi.learner_preference.audio_level";
-		string strValue = learnerPreference.audioLevel.ToString ();
+		string strValue = ScormFormat.ToReal(learnerPreference.audioLevel);
 		SetValue (identifier, strValue);
 
 		identifier = "cmi.learner_preference.language";
@@ -947,11 +820,11 @@ public class ScormManager : MonoBehaviour {
 		SetValue (identifier, strValue);
 
 		identifier = "cmi.learner_preference.delivery_speed";
-		strValue = learnerPreference.deliverySpeed.ToString ();
+		strValue = ScormFormat.ToReal(learnerPreference.deliverySpeed);
 		SetValue (identifier, strValue);
 
 		identifier = "cmi.learner_preference.audio_captioning";
-		strValue = learnerPreference.audioCaptioning.ToString ();
+		strValue = learnerPreference.audioCaptioning.ToString(System.Globalization.CultureInfo.InvariantCulture);
 		SetValue (identifier, strValue);
 
 		studentRecord.learnerPreference = learnerPreference;
@@ -972,7 +845,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">float Value.</param>
 	public static void SetLearnerPreferenceAudioLevel(float value) {
 		string identifier = "cmi.learner_preference.audio_level";
-		string strValue = value.ToString ();
+		string strValue = ScormFormat.ToReal(value);
 		studentRecord.learnerPreference.audioLevel = value;
 		SetValue (identifier, strValue);
 	}
@@ -1012,7 +885,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">float Value.</param>
 	public static void SetLearnerPreferenceDeliverySpeed(float value) {
 		string identifier = "cmi.learner_preference.delivery_speed";
-		string strValue = value.ToString();
+		string strValue = ScormFormat.ToReal(value);
 		studentRecord.learnerPreference.deliverySpeed = value;
 		SetValue (identifier, strValue);
 	}
@@ -1032,7 +905,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">integer Value.</param>
 	public static void SetLearnerPreferenceAudioCaptioning(int value) {
 		string identifier = "cmi.learner_preference.audio_captioning";
-		string strValue = value.ToString();
+		string strValue = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 		studentRecord.learnerPreference.audioCaptioning = value;
 		SetValue (identifier, strValue);
 	}
@@ -1094,10 +967,25 @@ public class ScormManager : MonoBehaviour {
 	/// ScormManager.AddObjective(newRecord);
 	/// </c>
 	public static void AddObjective(StudentRecord.Objectives objective) {
-		System.Threading.Thread thread = new System.Threading.Thread (() => CallAddObjective (objective));
-		thread.Start ();
+		try {
+			objective.id = "urn:STALS:objective-id-" + studentRecord.objectives.Count.ToString ();	//Override ID to ensure it is unique (use UpsertObjective to keep your own id)
+			//All other properties must be set by the caller
+
+			int i = studentRecord.objectives.Count;
+
+			//The id must be set before any other field. The objective is added locally only if the LMS accepted the id
+			//(keeps objectives.Count == cmi.objectives._count), or when there is no LMS at all (the list only feeds the UI).
+			if (SetAndCache("cmi.objectives."+i+".id", objective.id)) {
+				studentRecord.objectives.Add(objective);
+				WriteObjectiveFields(i, objective);
+			} else if (!IsLmsConnected) {
+				studentRecord.objectives.Add(objective);
+			}
+		} catch(System.Exception e) {
+            wgldebugPrint("***AddObjective***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
 	}
-	
+
 	/// <summary>
 	/// Updates the objective.
 	/// </summary>
@@ -1119,8 +1007,238 @@ public class ScormManager : MonoBehaviour {
 	/// ScormManager.UpdateObjective(1, newRecord);
 	/// </c>
 	public static void UpdateObjective(int index, StudentRecord.Objectives objective) {
-		System.Threading.Thread thread = new System.Threading.Thread (() => CallUpdateObjective (index, objective));
-		thread.Start ();
+		try {
+			//cmi.objectives.n.id cannot change once set: it is only sent if it differs from the LMS value (a different id is refused by the LMS)
+			WriteIfChanged("cmi.objectives."+index+".id", objective.id, false);
+			WriteObjectiveFields(index, objective);
+			studentRecord.objectives[index] = objective;
+		} catch(System.Exception e) {
+            wgldebugPrint("***UpdateObjective***" + e.Message + "<br/>" + e.StackTrace + "<br/>" + e.Source);
+        }
+	}
+
+	static void WriteObjectiveFields(int index, StudentRecord.Objectives objective) {
+		string p = "cmi.objectives." + index + ".";
+		if (objective.score != null) {
+			WriteIfChanged(p + "score.min", ScormFormat.ToReal(objective.score.min), true);
+			WriteIfChanged(p + "score.max", ScormFormat.ToReal(objective.score.max), true);
+			WriteIfChanged(p + "score.raw", ScormFormat.ToReal(objective.score.raw), true);
+			WriteIfChanged(p + "score.scaled", ScormFormat.ToReal(objective.score.scaled), true);
+		}
+		WriteIfChanged(p + "success_status", CustomTypeToString(objective.successStatus), false);
+		WriteIfChanged(p + "completion_status", CustomTypeToString(objective.completionStatus), false);
+		WriteIfChanged(p + "progress_measure", ScormFormat.ToReal(objective.progressMeasure), true);
+		WriteIfChanged(p + "description", objective.description, false);
+	}
+
+	/// <summary>Index n of the objective whose cmi.objectives.n.id is id (ordinal comparison), or -1.</summary>
+	public static int FindObjectiveIndex(string id) {
+		if (studentRecord == null || studentRecord.objectives == null || string.IsNullOrEmpty(id))
+			return -1;
+		for (int i = 0; i < studentRecord.objectives.Count; i++) {
+			StudentRecord.Objectives objective = studentRecord.objectives[i];
+			if (objective != null && string.Equals(objective.id, id, StringComparison.Ordinal))
+				return i;
+		}
+		return -1;
+	}
+
+	/// <summary>The objective with this id (loaded from the LMS or written in this session), or null.</summary>
+	public static StudentRecord.Objectives GetObjective(string id) {
+		int index = FindObjectiveIndex(id);
+		return index < 0 ? null : studentRecord.objectives[index];
+	}
+
+	/// <summary>
+	/// Creates or updates the objective with data.id (e.g. "scenario-01") and returns its index n.
+	/// </summary>
+	/// <remarks>
+	/// The index is looked up by id in the objectives loaded from the LMS, so on resume the existing entry is updated
+	/// instead of being duplicated. A new objective is appended at cmi.objectives._count and its id is written before
+	/// any other field. Only the fields set in data are written, in the order score.min, score.max, score.raw,
+	/// score.scaled, success_status, completion_status, progress_measure, description, and each one only if it differs
+	/// from the value the LMS already has. Every value is validated before the first write.
+	/// </remarks>
+	/// <returns>The objective index, or -1 if the LMS rejected the id of a new objective (nothing is added then).</returns>
+	/// <exception cref="InvalidOperationException">ScormManager is not initialized.</exception>
+	/// <exception cref="ArgumentException">Empty id, or a value out of range (scaled -1..1, min &lt;= raw &lt;= max, progress 0..1).</exception>
+	public static int UpsertObjective(ScormObjectiveData data) {
+		bool allWritten;
+		return UpsertObjective(data, out allWritten);
+	}
+
+	/// <summary>
+	/// Same as <see cref="UpsertObjective(ScormObjectiveData)"/>; allWritten is false if the LMS rejected any field
+	/// (see also LastWriteFailed / LastWriteErrorCode). Rejected values are not cached, so the next upsert retries them.
+	/// </summary>
+	/// <exception cref="ArgumentException">Empty id, id with whitespace or longer than 4000 characters, or a value out of range.</exception>
+	public static int UpsertObjective(ScormObjectiveData data, out bool allWritten) {
+		RequireStudentRecord();
+		BeginWrites();
+		allWritten = false;
+		if (data == null)
+			throw new ArgumentNullException("data");
+		if (string.IsNullOrEmpty(data.id) || data.id.Trim().Length == 0)
+			throw new ArgumentException("The objective id is empty.", "data");
+		ValidateIdentifier(data.id, "objective id");
+
+		int index = FindObjectiveIndex(data.id);
+		bool isNew = index < 0;
+		if (isNew)
+			index = studentRecord.objectives.Count;
+		string p = "cmi.objectives." + index + ".";
+
+		ValidateScore(p + "score.", data.score, "Objective '" + data.id + "'");
+		if (data.progressMeasure.HasValue && !InRange(data.progressMeasure.Value, 0f, 1f))
+			throw new ArgumentOutOfRangeException("data", data.progressMeasure.Value, "Objective '" + data.id + "': progress_measure must be between 0 and 1.");
+
+		StudentRecord.Objectives record;
+		if (isNew) {
+			if (!SetAndCache(p + "id", data.id))
+				return -1;
+			record = new StudentRecord.Objectives();
+			record.id = data.id;
+			record.score = new StudentRecord.LearnerScore();
+			record.successStatus = StudentRecord.SuccessStatusType.not_set;
+			record.completionStatus = StudentRecord.CompletionStatusType.not_set;
+			studentRecord.objectives.Add(record);
+		} else {
+			record = studentRecord.objectives[index];
+			if (record.score == null)
+				record.score = new StudentRecord.LearnerScore();
+		}
+
+		WriteScore(p + "score.", data.score, record.score);
+
+		if (data.successStatus != StudentRecord.SuccessStatusType.not_set && WriteIfChanged(p + "success_status", CustomTypeToString(data.successStatus), false))
+			record.successStatus = data.successStatus;
+		if (data.completionStatus != StudentRecord.CompletionStatusType.not_set && WriteIfChanged(p + "completion_status", CustomTypeToString(data.completionStatus), false))
+			record.completionStatus = data.completionStatus;
+		if (data.progressMeasure.HasValue && WriteIfChanged(p + "progress_measure", ScormFormat.ToReal(data.progressMeasure.Value), true))
+			record.progressMeasure = data.progressMeasure.Value;
+		if (!string.IsNullOrEmpty(data.description) && WriteIfChanged(p + "description", data.description, false))
+			record.description = data.description;
+
+		allWritten = !LastWriteFailed;
+		return index;
+	}
+
+	/// <summary>
+	/// Writes the global score (cmi.score.*): only the fields set, only if they changed, min/max before raw.
+	/// </summary>
+	/// <returns>False if the LMS rejected any write.</returns>
+	/// <exception cref="InvalidOperationException">ScormManager is not initialized.</exception>
+	/// <exception cref="ArgumentException">scaled outside -1..1, min &gt; max, or raw outside min..max.</exception>
+	public static bool UpdateScore(ScormScoreData score) {
+		RequireStudentRecord();
+		BeginWrites();
+		ValidateScore("cmi.score.", score, "cmi.score");
+		if (studentRecord.learnerScore == null)
+			studentRecord.learnerScore = new StudentRecord.LearnerScore();
+		return WriteScore("cmi.score.", score, studentRecord.learnerScore);
+	}
+
+	/// <summary>
+	/// Writes cmi.success_status and cmi.completion_status if they changed (not_set = leave untouched).
+	/// </summary>
+	/// <returns>False if the LMS rejected any write.</returns>
+	/// <exception cref="InvalidOperationException">ScormManager is not initialized.</exception>
+	public static bool UpdateStatus(StudentRecord.SuccessStatusType successStatus, StudentRecord.CompletionStatusType completionStatus) {
+		RequireStudentRecord();
+		BeginWrites();
+		bool ok = true;
+		if (successStatus != StudentRecord.SuccessStatusType.not_set) {
+			if (WriteIfChanged("cmi.success_status", CustomTypeToString(successStatus), false))
+				studentRecord.successStatus = successStatus;
+			else
+				ok = false;
+		}
+		if (completionStatus != StudentRecord.CompletionStatusType.not_set) {
+			if (WriteIfChanged("cmi.completion_status", CustomTypeToString(completionStatus), false))
+				studentRecord.completionStatus = completionStatus;
+			else
+				ok = false;
+		}
+		return ok;
+	}
+
+	/// <summary>Writes cmi.progress_measure (0..1) if it changed.</summary>
+	/// <returns>False if the LMS rejected the write.</returns>
+	/// <exception cref="InvalidOperationException">ScormManager is not initialized.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">value outside 0..1.</exception>
+	public static bool UpdateProgressMeasure(float value) {
+		RequireStudentRecord();
+		BeginWrites();
+		if (!InRange(value, 0f, 1f))
+			throw new ArgumentOutOfRangeException("value", value, "cmi.progress_measure must be between 0 and 1.");
+		if (!WriteIfChanged("cmi.progress_measure", ScormFormat.ToReal(value), true))
+			return false;
+		studentRecord.progressMeasure = value;
+		return true;
+	}
+
+	static void ValidateScore(string prefix, ScormScoreData score, string owner) {
+		if (score == null)
+			return;
+		if (!IsFinite(score.raw) || !IsFinite(score.min) || !IsFinite(score.max) || !IsFinite(score.scaled))
+			throw new ArgumentOutOfRangeException("score", owner + ": score values must be finite numbers (no NaN or Infinity).");
+		if (score.scaled.HasValue && !InRange(score.scaled.Value, -1f, 1f))
+			throw new ArgumentOutOfRangeException("score", score.scaled.Value, owner + ": score.scaled must be between -1 and 1.");
+		float? min = score.min.HasValue ? score.min : KnownReal(prefix + "min");
+		float? max = score.max.HasValue ? score.max : KnownReal(prefix + "max");
+		if (min.HasValue && max.HasValue && min.Value > max.Value + RealTolerance)
+			throw new ArgumentOutOfRangeException("score", owner + ": score.min (" + ScormFormat.ToReal(min.Value) + ") is greater than score.max (" + ScormFormat.ToReal(max.Value) + ").");
+		if (score.raw.HasValue) {
+			if (float.IsNaN(score.raw.Value))
+				throw new ArgumentOutOfRangeException("score", owner + ": score.raw is NaN.");
+			if (min.HasValue && score.raw.Value < min.Value - RealTolerance)
+				throw new ArgumentOutOfRangeException("score", owner + ": score.raw (" + ScormFormat.ToReal(score.raw.Value) + ") is below score.min (" + ScormFormat.ToReal(min.Value) + ").");
+			if (max.HasValue && score.raw.Value > max.Value + RealTolerance)
+				throw new ArgumentOutOfRangeException("score", owner + ": score.raw (" + ScormFormat.ToReal(score.raw.Value) + ") is above score.max (" + ScormFormat.ToReal(max.Value) + ").");
+		}
+	}
+
+	static bool WriteScore(string prefix, ScormScoreData score, StudentRecord.LearnerScore record) {
+		if (score == null)
+			return true;
+		bool ok = true;
+		if (score.min.HasValue) {
+			if (WriteIfChanged(prefix + "min", ScormFormat.ToReal(score.min.Value), true)) record.min = score.min.Value; else ok = false;
+		}
+		if (score.max.HasValue) {
+			if (WriteIfChanged(prefix + "max", ScormFormat.ToReal(score.max.Value), true)) record.max = score.max.Value; else ok = false;
+		}
+		if (score.raw.HasValue) {
+			if (WriteIfChanged(prefix + "raw", ScormFormat.ToReal(score.raw.Value), true)) record.raw = score.raw.Value; else ok = false;
+		}
+		if (score.scaled.HasValue) {
+			if (WriteIfChanged(prefix + "scaled", ScormFormat.ToReal(score.scaled.Value), true)) record.scaled = score.scaled.Value; else ok = false;
+		}
+		return ok;
+	}
+
+	const float RealTolerance = 1e-6f;
+
+	static bool InRange(float value, float min, float max) {
+		return !float.IsNaN(value) && value >= min - RealTolerance && value <= max + RealTolerance;
+	}
+
+	static bool IsFinite(float? value) {
+		return !value.HasValue || (!float.IsNaN(value.Value) && !float.IsInfinity(value.Value));
+	}
+
+	/// <summary>SCORM 2004 long_identifier_type: URI-like, SPM 4000 characters; strict LMSs reject whitespace.</summary>
+	static void ValidateIdentifier(string id, string what) {
+		if (id.Length > 4000)
+			throw new ArgumentException("The " + what + " is longer than 4000 characters.", "id");
+		foreach (char c in id)
+			if (char.IsWhiteSpace(c))
+				throw new ArgumentException("The " + what + " '" + id + "' contains whitespace; use a URI-like id such as 'scenario-01'.", "id");
+	}
+
+	static void RequireStudentRecord() {
+		if (studentRecord == null || scormAPIWrapper == null)
+			throw new InvalidOperationException("ScormManager is not initialized (call ScormManager.Initialize or wait for Scorm_Initialize_Complete; SCORM 1.2 is not supported).");
 	}
 
 	/// <summary>
@@ -1156,7 +1274,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">float Value.</param>
 	public static void SetProgressMeasure(float value) {
 		string identifier = "cmi.progress_measure";
-		string strValue = value.ToString();
+		string strValue = ScormFormat.ToReal(value);
 		studentRecord.progressMeasure = value;
 		SetValue (identifier, strValue);
 	}
@@ -1191,19 +1309,19 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="learnerScore">Learner score.</param>
 	public static void SetScore(StudentRecord.LearnerScore learnerScore) {
 		string identifier = "cmi.score.scaled";
-		string strValue = learnerScore.scaled.ToString();
+		string strValue = ScormFormat.ToReal(learnerScore.scaled);
 		SetValue (identifier, strValue);
 
 		identifier = "cmi.score.raw";
-		strValue = learnerScore.raw.ToString();
+		strValue = ScormFormat.ToReal(learnerScore.raw);
 		SetValue (identifier, strValue);
 
 		identifier = "cmi.score.max";
-		strValue = learnerScore.max.ToString();
+		strValue = ScormFormat.ToReal(learnerScore.max);
 		SetValue (identifier, strValue);
 
 		identifier = "cmi.score.min";
-		strValue = learnerScore.min.ToString();
+		strValue = ScormFormat.ToReal(learnerScore.min);
 		SetValue (identifier, strValue);
 
 		studentRecord.learnerScore = learnerScore;
@@ -1225,7 +1343,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">float Value.</param>
 	public static void SetScoreScaled(float value) {
 		string identifier = "cmi.score.scaled";
-		string strValue = value.ToString();
+		string strValue = ScormFormat.ToReal(value);
 		studentRecord.learnerScore.scaled = value;
 		SetValue (identifier, strValue);
 	}
@@ -1245,7 +1363,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">float Value.</param>
 	public static void SetScoreRaw(float value) {
 		string identifier = "cmi.score.raw";
-		string strValue = value.ToString();
+		string strValue = ScormFormat.ToReal(value);
 		studentRecord.learnerScore.raw = value;
 		SetValue (identifier, strValue);
 	}
@@ -1265,7 +1383,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">floatValue.</param>
 	public static void SetScoreMax(float value) {
 		string identifier = "cmi.score.max";
-		string strValue = value.ToString();
+		string strValue = ScormFormat.ToReal(value);
 		studentRecord.learnerScore.max = value;
 		SetValue (identifier, strValue);
 	}
@@ -1285,7 +1403,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="value">float Value.</param>
 	public static void SetScoreMin(float value) {
 		string identifier = "cmi.score.min";
-		string strValue = value.ToString();
+		string strValue = ScormFormat.ToReal(value);
 		studentRecord.learnerScore.min = value;
 		SetValue (identifier, strValue);
 	}
@@ -1317,6 +1435,8 @@ public class ScormManager : MonoBehaviour {
 	public static void SetSuccessStatus(StudentRecord.SuccessStatusType value) {
 		string identifier = "cmi.success_status";
 		string strValue = CustomTypeToString(value);
+		if (strValue.Length == 0)																//not_set: "" is not a valid vocabulary value
+			return;
 		studentRecord.successStatus = value;
 		SetValue (identifier, strValue);
 	}
@@ -1367,18 +1487,18 @@ public class ScormManager : MonoBehaviour {
 	private static StudentRecord LoadStudentRecord() {
 		studentRecord = new StudentRecord();
 
-		studentRecord.version = scormAPIWrapper.GetValue ("cmi._version");
+		studentRecord.version = LoadValue ("cmi._version");
 
 		//Comments From Learner
-		int commentsFromLearnerCount = ParseInt (scormAPIWrapper.GetValue ("cmi.comments_from_learner._count"));
+		int commentsFromLearnerCount = ParseInt (LoadValue ("cmi.comments_from_learner._count"));
 		studentRecord.commentsFromLearner = new List<StudentRecord.CommentsFromLearner>();
 
 		if (commentsFromLearnerCount != 0) {
 			
 			for (int i = 0; i < commentsFromLearnerCount; i++) {
-				string comment = scormAPIWrapper.GetValue ("cmi.comments_from_learner."+i+".comment");
-				string location = scormAPIWrapper.GetValue ("cmi.comments_from_learner."+i+".location");
-				DateTime timestamp = DateTime.Parse( scormAPIWrapper.GetValue ("cmi.comments_from_learner."+i+".timestamp") );
+				string comment = LoadValue ("cmi.comments_from_learner."+i+".comment");
+				string location = LoadValue ("cmi.comments_from_learner."+i+".location");
+				DateTime timestamp = ScormFormat.ParseTimestamp(LoadValue ("cmi.comments_from_learner."+i+".timestamp"));
 
 				StudentRecord.CommentsFromLearner newRecord = new StudentRecord.CommentsFromLearner();
 				newRecord.comment = comment;
@@ -1390,15 +1510,15 @@ public class ScormManager : MonoBehaviour {
 		}
 
 		//Comments From LMS
-		int commentsFromLMSCount = ParseInt (scormAPIWrapper.GetValue ("cmi.comments_from_lms._count"));
+		int commentsFromLMSCount = ParseInt (LoadValue ("cmi.comments_from_lms._count"));
 		studentRecord.commentsFromLMS = new List<StudentRecord.CommentsFromLMS>();
 		
 		if (commentsFromLMSCount != 0) {
 			
 			for (int i = 0; i < commentsFromLMSCount; i++) {
-				string comment = scormAPIWrapper.GetValue ("cmi.comments_from_lms."+i+".comment");
-				string location = scormAPIWrapper.GetValue ("cmi.comments_from_lms."+i+".location");
-				DateTime timeStamp = DateTime.Parse( scormAPIWrapper.GetValue ("cmi.comments_from_lms."+i+".timestamp") );
+				string comment = LoadValue ("cmi.comments_from_lms."+i+".comment");
+				string location = LoadValue ("cmi.comments_from_lms."+i+".location");
+				DateTime timeStamp = ScormFormat.ParseTimestamp(LoadValue ("cmi.comments_from_lms."+i+".timestamp"));
 				
 				StudentRecord.CommentsFromLMS newRecord = new StudentRecord.CommentsFromLMS();
 				newRecord.comment = comment;
@@ -1409,27 +1529,27 @@ public class ScormManager : MonoBehaviour {
 			}
 		}
 
-		studentRecord.completionStatus = StringToCompletionStatusType (scormAPIWrapper.GetValue ("cmi.completion_status"));
-		studentRecord.completionThreshold = ParseFloat(scormAPIWrapper.GetValue ("cmi.completion_threshold"));
-		studentRecord.credit = StringToCreditType (scormAPIWrapper.GetValue ("cmi.credit"));
-		studentRecord.entry = StringToEntryType (scormAPIWrapper.GetValue ("cmi.entry"));
+		studentRecord.completionStatus = StringToCompletionStatusType (LoadValue ("cmi.completion_status"));
+		studentRecord.completionThreshold = ParseFloat(LoadValue ("cmi.completion_threshold"));
+		studentRecord.credit = StringToCreditType (LoadValue ("cmi.credit"));
+		studentRecord.entry = StringToEntryType (LoadValue ("cmi.entry"));
 
 		//Interactions
-		int interactionCount = ParseInt (scormAPIWrapper.GetValue ("cmi.interactions._count"));
+		int interactionCount = ParseInt (LoadValue ("cmi.interactions._count"));
 		studentRecord.interactions = new List<StudentRecord.LearnerInteractionRecord>();
 
 		if (interactionCount != 0) {
 						
 			for (int i = 0; i < interactionCount; i++) {
-				string id = scormAPIWrapper.GetValue ("cmi.interactions."+i+".id");
-				StudentRecord.InteractionType type = StringToInteractionType( scormAPIWrapper.GetValue ("cmi.interactions."+i+".type") );
-				DateTime timestamp = DateTime.Parse( scormAPIWrapper.GetValue ("cmi.interactions."+i+".timestamp") );
-				float weighting = ParseFloat( scormAPIWrapper.GetValue ("cmi.interactions."+i+".weighting") );
-				string response = scormAPIWrapper.GetValue ("cmi.interactions."+i+".learner_response");
-				float latency = timeIntervalToSeconds ( scormAPIWrapper.GetValue ("cmi.interactions."+i+".latency") );
-				string description = scormAPIWrapper.GetValue ("cmi.interactions."+i+".description");
+				string id = LoadValue ("cmi.interactions."+i+".id");
+				StudentRecord.InteractionType type = StringToInteractionType( LoadValue ("cmi.interactions."+i+".type") );
+				DateTime timestamp = ScormFormat.ParseTimestamp(LoadValue ("cmi.interactions."+i+".timestamp"));
+				float weighting = ParseFloat( LoadValue ("cmi.interactions."+i+".weighting") );
+				string response = LoadValue ("cmi.interactions."+i+".learner_response");
+				float latency = timeIntervalToSeconds ( LoadValue ("cmi.interactions."+i+".latency") );
+				string description = LoadValue ("cmi.interactions."+i+".description");
 				float estimate = 0;
-				StudentRecord.ResultType result = StringToResultType(scormAPIWrapper.GetValue ("cmi.interactions."+i+".result"), out estimate);
+				StudentRecord.ResultType result = StringToResultType(LoadValue ("cmi.interactions."+i+".result"), out estimate);
 								
 				StudentRecord.LearnerInteractionRecord newRecord = new StudentRecord.LearnerInteractionRecord();
 				newRecord.id = id;
@@ -1442,24 +1562,24 @@ public class ScormManager : MonoBehaviour {
 				newRecord.result = result;
 				newRecord.estimate = estimate;
 
-				int interactionObjectivesCount = ParseInt (scormAPIWrapper.GetValue ("cmi.interactions."+i+".objectives._count"));
+				int interactionObjectivesCount = ParseInt (LoadValue ("cmi.interactions."+i+".objectives._count"));
 				newRecord.objectives = new List<StudentRecord.LearnerInteractionObjective>();
 
 				if(interactionObjectivesCount != 0) {
 					for (int x = 0; x < interactionObjectivesCount; x++) {
 						StudentRecord.LearnerInteractionObjective newObjective = new StudentRecord.LearnerInteractionObjective();
-						newObjective.id = scormAPIWrapper.GetValue ("cmi.interactions."+i+".objectives."+x+".id");
+						newObjective.id = LoadValue ("cmi.interactions."+i+".objectives."+x+".id");
 						newRecord.objectives.Add(newObjective);
 					}
 				}
 
-				int correctResponsesCount = ParseInt (scormAPIWrapper.GetValue ("cmi.interactions."+i+".correct_responses._count"));
+				int correctResponsesCount = ParseInt (LoadValue ("cmi.interactions."+i+".correct_responses._count"));
 				newRecord.correctResponses = new List<StudentRecord.LearnerInteractionCorrectResponse>();
 				
 				if(correctResponsesCount != 0) {
 					for (int x = 0; x < correctResponsesCount; x++) {
 						StudentRecord.LearnerInteractionCorrectResponse newCorrectResponse = new StudentRecord.LearnerInteractionCorrectResponse();
-						newCorrectResponse.pattern = scormAPIWrapper.GetValue ("cmi.interactions."+i+".correct_responses."+x+".pattern");
+						newCorrectResponse.pattern = LoadValue ("cmi.interactions."+i+".correct_responses."+x+".pattern");
 						newRecord.correctResponses.Add(newCorrectResponse);
 					}
 				}
@@ -1468,37 +1588,37 @@ public class ScormManager : MonoBehaviour {
 			}
 		}
 
-		studentRecord.launchData = scormAPIWrapper.GetValue ("cmi.launch_data");
-		studentRecord.learnerID = scormAPIWrapper.GetValue ("cmi.learner_id");
-		studentRecord.learnerName = scormAPIWrapper.GetValue ("cmi.learner_name");
+		studentRecord.launchData = LoadValue ("cmi.launch_data");
+		studentRecord.learnerID = LoadValue ("cmi.learner_id");
+		studentRecord.learnerName = LoadValue ("cmi.learner_name");
 		//learner_preference
 		StudentRecord.LearnerPreference learnerPreference = new StudentRecord.LearnerPreference ();
-		learnerPreference.audioLevel =  ParseFloat (scormAPIWrapper.GetValue ("cmi.learner_preference.audio_level"));
-		learnerPreference.langauge = scormAPIWrapper.GetValue ("cmi.learner_preference.language");
-		learnerPreference.deliverySpeed = ParseFloat (scormAPIWrapper.GetValue ("cmi.learner_preference.delivery_speed"));
-		learnerPreference.audioCaptioning = ParseInt (scormAPIWrapper.GetValue ("cmi.learner_preference.audio_captioning"));
+		learnerPreference.audioLevel =  ParseFloat (LoadValue ("cmi.learner_preference.audio_level"));
+		learnerPreference.langauge = LoadValue ("cmi.learner_preference.language");
+		learnerPreference.deliverySpeed = ParseFloat (LoadValue ("cmi.learner_preference.delivery_speed"));
+		learnerPreference.audioCaptioning = ParseInt (LoadValue ("cmi.learner_preference.audio_captioning"));
 		studentRecord.learnerPreference = learnerPreference;
 
-		studentRecord.location = scormAPIWrapper.GetValue ("cmi.location");
+		studentRecord.location = LoadValue ("cmi.location");
 
 		//Objectives
-		int objectivesCount = ParseInt (scormAPIWrapper.GetValue ("cmi.objectives._count"));
+		int objectivesCount = ParseInt (LoadValue ("cmi.objectives._count"));
 		studentRecord.objectives = new List<StudentRecord.Objectives> ();
 
 		if (objectivesCount != 0) {
 			for (int i = 0; i < objectivesCount; i++) {
-				string id = scormAPIWrapper.GetValue ("cmi.objectives."+i+".id");
+				string id = LoadValue ("cmi.objectives."+i+".id");
 
 				StudentRecord.LearnerScore objectivesScore = new StudentRecord.LearnerScore();
-				objectivesScore.scaled = ParseFloat (scormAPIWrapper.GetValue ("cmi.objectives."+i+".score.scaled"));
-				objectivesScore.raw = ParseFloat (scormAPIWrapper.GetValue ("cmi.objectives."+i+".score.raw"));
-				objectivesScore.max = ParseFloat (scormAPIWrapper.GetValue ("cmi.objectives."+i+".score.max"));
-				objectivesScore.min = ParseFloat (scormAPIWrapper.GetValue ("cmi.objectives."+i+".score.min"));
+				objectivesScore.scaled = ParseFloat (LoadValue ("cmi.objectives."+i+".score.scaled"));
+				objectivesScore.raw = ParseFloat (LoadValue ("cmi.objectives."+i+".score.raw"));
+				objectivesScore.max = ParseFloat (LoadValue ("cmi.objectives."+i+".score.max"));
+				objectivesScore.min = ParseFloat (LoadValue ("cmi.objectives."+i+".score.min"));
 
-				StudentRecord.SuccessStatusType successStatus = StringToSuccessStatusType(scormAPIWrapper.GetValue ("cmi.objectives."+i+".success_status"));
-				StudentRecord.CompletionStatusType completionStatus = StringToCompletionStatusType(scormAPIWrapper.GetValue ("cmi.objectives."+i+".completion_status"));
-				float progressMeasure = ParseFloat (scormAPIWrapper.GetValue ("cmi.objectives."+i+".progress_measure"));
-				string description = scormAPIWrapper.GetValue ("cmi.objectives."+i+".description");
+				StudentRecord.SuccessStatusType successStatus = StringToSuccessStatusType(LoadValue ("cmi.objectives."+i+".success_status"));
+				StudentRecord.CompletionStatusType completionStatus = StringToCompletionStatusType(LoadValue ("cmi.objectives."+i+".completion_status"));
+				float progressMeasure = ParseFloat (LoadValue ("cmi.objectives."+i+".progress_measure"));
+				string description = LoadValue ("cmi.objectives."+i+".description");
 
 				StudentRecord.Objectives newRecord = new StudentRecord.Objectives();
 				newRecord.id = id;
@@ -1512,21 +1632,21 @@ public class ScormManager : MonoBehaviour {
 			}
 		}
 
-		studentRecord.maxTimeAllowed = timeIntervalToSeconds (scormAPIWrapper.GetValue ("cmi.max_time_allowed"));
-		studentRecord.mode = StringToModeType (scormAPIWrapper.GetValue ("cmi.mode"));
-		studentRecord.progressMeasure = ParseFloat (scormAPIWrapper.GetValue ("cmi.progress_measure"));
-		studentRecord.scaledPassingScore = ParseFloat(scormAPIWrapper.GetValue ("cmi.scaled_passing_score"));
+		studentRecord.maxTimeAllowed = timeIntervalToSeconds (LoadValue ("cmi.max_time_allowed"));
+		studentRecord.mode = StringToModeType (LoadValue ("cmi.mode"));
+		studentRecord.progressMeasure = ParseFloat (LoadValue ("cmi.progress_measure"));
+		studentRecord.scaledPassingScore = ParseFloat(LoadValue ("cmi.scaled_passing_score"));
 		//Score
 		studentRecord.learnerScore = new StudentRecord.LearnerScore ();
-		studentRecord.learnerScore.scaled = ParseFloat (scormAPIWrapper.GetValue ("cmi.score.scaled"));
-		studentRecord.learnerScore.raw = ParseFloat (scormAPIWrapper.GetValue ("cmi.score.raw"));
-		studentRecord.learnerScore.max = ParseFloat (scormAPIWrapper.GetValue ("cmi.score.max"));
-		studentRecord.learnerScore.min = ParseFloat (scormAPIWrapper.GetValue ("cmi.score.min"));
+		studentRecord.learnerScore.scaled = ParseFloat (LoadValue ("cmi.score.scaled"));
+		studentRecord.learnerScore.raw = ParseFloat (LoadValue ("cmi.score.raw"));
+		studentRecord.learnerScore.max = ParseFloat (LoadValue ("cmi.score.max"));
+		studentRecord.learnerScore.min = ParseFloat (LoadValue ("cmi.score.min"));
 
-		studentRecord.successStatus = StringToSuccessStatusType (scormAPIWrapper.GetValue ("cmi.success_status"));
-		studentRecord.suspendData = scormAPIWrapper.GetValue ("cmi.suspend_data");
-		studentRecord.timeLimitAction = StringToTimeLimitActionType (scormAPIWrapper.GetValue ("cmi.time_limit_action"));
-		studentRecord.totalTime = timeIntervalToSeconds (scormAPIWrapper.GetValue ("cmi.total_time"));
+		studentRecord.successStatus = StringToSuccessStatusType (LoadValue ("cmi.success_status"));
+		studentRecord.suspendData = LoadValue ("cmi.suspend_data");
+		studentRecord.timeLimitAction = StringToTimeLimitActionType (LoadValue ("cmi.time_limit_action"));
+		studentRecord.totalTime = timeIntervalToSeconds (LoadValue ("cmi.total_time"));
 
 		return studentRecord;
 	}
@@ -1534,40 +1654,30 @@ public class ScormManager : MonoBehaviour {
 	/// <summary>
 	/// Parses the float.
 	/// </summary>
-	/// <remarks>float.Parse fails on an empty string, so we use this to return a 0 if an empty string is encountered.</remarks>
+	/// <remarks>Invariant culture; returns 0 for an empty or invalid string.</remarks>
 	/// <returns>The float.</returns>
 	/// <param name="str">String.</param>
 	private static float ParseFloat(string str) {
-		float result = 0f;
-		float.TryParse(str,out result);
-		return result;
+		return ScormFormat.ParseReal(str);
 	}
 
 	/// <summary>
 	/// Parses the int.
 	/// </summary>
-	/// <remarks>int.Parse fails on an empty string, so we use this to return a 0 if an empty string is encountered.</remarks>
+	/// <remarks>Invariant culture; returns 0 for an empty or invalid string.</remarks>
 	/// <returns>The int.</returns>
 	/// <param name="str">String.</param>
 	private static int ParseInt(string str) {
-		int result = 0;
-		int.TryParse(str,out result);
-		return result;
+		return ScormFormat.ParseInt(str);
 	}
 
 	/// <summary>
-	/// Custom type to string.  Basically changes "not_set" to an empty string.
+	/// Converts a StudentRecord enum to its SCORM vocabulary token (e.g. true_false -> "true-false", not_set -> "").
 	/// </summary>
-	/// <returns>The string representation of the custom enum.</returns>
+	/// <returns>The SCORM vocabulary string of the custom enum.</returns>
 	/// <param name="value">Value.</param>
 	public static string CustomTypeToString(object value) {
-		string result = value.ToString ();
-		if (result == "not_set") {
-			result = "";
-		} else if (result == "not_attempted") {
-			result = "not attempted";
-		}
-		return result;
+		return ScormFormat.ToVocabulary(value);
 	}
 
 	/// <summary>
@@ -1577,31 +1687,7 @@ public class ScormManager : MonoBehaviour {
 	/// <param name="str">String.</param>
 	/// <param name="estimate">Estimate.</param>
 	public static StudentRecord.ResultType StringToResultType(string str, out float estimate) {
-		StudentRecord.ResultType result = StudentRecord.ResultType.not_set;
-
-		estimate = 1;
-
-		if(float.TryParse(str, out estimate)) {
-			result = StudentRecord.ResultType.estimate;
-		}
-
-		switch (str) {
-		case "correct":
-			result = StudentRecord.ResultType.correct;
-			break;
-		case "incorrect":
-			result = StudentRecord.ResultType.incorrect;
-			break;
-		case "neutral":
-			result = StudentRecord.ResultType.neutral;
-			break;
-		case "unanticipated":
-			result = StudentRecord.ResultType.unanticipated;
-			break;
-		}
-
-		return result;
-
+		return ScormFormat.StringToResultType(str, out estimate);
 	}
 
 	/// <summary>
@@ -1610,217 +1696,49 @@ public class ScormManager : MonoBehaviour {
 	/// <returns>The to interaction type.</returns>
 	/// <param name="str">String.</param>
 	public static StudentRecord.InteractionType StringToInteractionType(string str) {
-		StudentRecord.InteractionType result = StudentRecord.InteractionType.not_set;
-		switch (str) {
-		case "true-false":
-			result = StudentRecord.InteractionType.true_false;
-			break;
-		case "choice":
-			result = StudentRecord.InteractionType.choice;
-			break;
-		case "fill-in":
-			result = StudentRecord.InteractionType.fill_in;
-			break;
-		case "long-fill-in":
-			result = StudentRecord.InteractionType.long_fill_in;
-			break;
-		case "matching":
-			result = StudentRecord.InteractionType.matching;
-			break;
-		case "performance":
-			result = StudentRecord.InteractionType.performance;
-			break;
-		case "sequencing":
-			result = StudentRecord.InteractionType.sequencing;
-			break;
-		case "likert":
-			result = StudentRecord.InteractionType.likert;
-			break;
-		case "numeric":
-			result = StudentRecord.InteractionType.numeric;
-			break;
-		}
-		return result;
+		return ScormFormat.StringToInteractionType(str);
 	}
 
-	/// <summary>
-	/// Convert string to the StudentRecord EntryType.
-	/// </summary>
-	/// <returns>The to entry type.</returns>
-	/// <param name="str">String.</param>
 	private static StudentRecord.EntryType StringToEntryType(string str) {
-		StudentRecord.EntryType result = StudentRecord.EntryType.not_set;
-		switch(str){
-		case "ab-initio":
-			result = StudentRecord.EntryType.start;
-			break;
-		case "resume":
-			result = StudentRecord.EntryType.resume;
-			break;
-		}
-		return result;
+		return ScormFormat.StringToEntryType(str);
 	}
 
-	/// <summary>
-	/// Convert string to the StudentRecord TimeLimitActionType.
-	/// </summary>
-	/// <returns>The to time limit action type.</returns>
-	/// <param name="str">String.</param>
 	private static StudentRecord.TimeLimitActionType StringToTimeLimitActionType (string str) {
-		StudentRecord.TimeLimitActionType result = StudentRecord.TimeLimitActionType.not_set;
-		switch(str){
-		case "continue,message":
-			result = StudentRecord.TimeLimitActionType.continue_message;
-			break;
-		case "continue,no message":
-			result = StudentRecord.TimeLimitActionType.continue_no_message;
-			break;
-		case "exit,message":
-			result = StudentRecord.TimeLimitActionType.exit_message;
-			break;
-		case "exit,no message":
-			result = StudentRecord.TimeLimitActionType.exit_no_message;
-			break;
-		}
-		return result;
+		return ScormFormat.StringToTimeLimitActionType(str);
 	}
 
-	/// <summary>
-	/// Convert string to the StudentRecord CompletionStatusType.
-	/// </summary>
-	/// <returns>The to completion status.</returns>
-	/// <param name="str">String.</param>
 	private static StudentRecord.CompletionStatusType StringToCompletionStatusType (string str) {
-		StudentRecord.CompletionStatusType result = StudentRecord.CompletionStatusType.not_set;
-		switch(str){
-		case "completed":
-			result = StudentRecord.CompletionStatusType.completed;
-			break;
-		case "incomplete":
-			result = StudentRecord.CompletionStatusType.incomplete;
-			break;
-		case "not attempted":
-			result = StudentRecord.CompletionStatusType.not_attempted;
-			break;
-		case "unknown":
-			result = StudentRecord.CompletionStatusType.unknown;
-			break;
-		}
-		return result;
+		return ScormFormat.StringToCompletionStatusType(str);
 	}
 
-
-	/// <summary>
-	/// Convert string to the StudentRecord SuccessStatusType.
-	/// </summary>
-	/// <returns>The to success status type.</returns>
-	/// <param name="str">String.</param>
 	private static StudentRecord.SuccessStatusType StringToSuccessStatusType (string str) {
-		StudentRecord.SuccessStatusType result = StudentRecord.SuccessStatusType.not_set;
-		switch(str){
-		case "passed":
-			result = StudentRecord.SuccessStatusType.passed;
-			break;
-		case "failed":
-			result = StudentRecord.SuccessStatusType.failed;
-			break;
-		case "unknown":
-			result = StudentRecord.SuccessStatusType.unknown;
-			break;
-		}
-		return result;
+		return ScormFormat.StringToSuccessStatusType(str);
 	}
 
-	/// <summary>
-	/// Convert string to the StudentRecord CreditType.
-	/// </summary>
-	/// <returns>The to credit type.</returns>
-	/// <param name="str">String.</param>
 	private static StudentRecord.CreditType StringToCreditType(string str) {
-		StudentRecord.CreditType result = StudentRecord.CreditType.not_set;
-		switch(str){
-		case "credit":
-			result = StudentRecord.CreditType.credit;
-			break;
-		case "no-credit":
-			result = StudentRecord.CreditType.no_credit;
-			break;
-		}
-		return result;
+		return ScormFormat.StringToCreditType(str);
 	}
 
-	/// <summary>
-	/// Convert string to the StudentRecord ModeType.
-	/// </summary>
-	/// <returns>The to mode type.</returns>
-	/// <param name="str">String.</param>
 	private static StudentRecord.ModeType StringToModeType(string str) {
-		StudentRecord.ModeType result = StudentRecord.ModeType.not_set;
-		switch(str){
-		case "browse":
-			result = StudentRecord.ModeType.browse;
-			break;
-		case "normal":
-			result = StudentRecord.ModeType.normal;
-			break;
-		case "review":
-			result = StudentRecord.ModeType.review;
-			break;
-		}
-		return result;
+		return ScormFormat.StringToModeType(str);
 	}
 
 	/// <summary>
-	/// Convert Seconds to the SCORM timeInterval.
+	/// Convert Seconds to the SCORM timeInterval (invariant culture, keeps the fraction: 18.4 -> "P0DT0H0M18.4S").
 	/// </summary>
 	/// <returns>timeInterval string.</returns>
 	/// <param name="seconds">Seconds.</param>
 	private static string secondsToTimeInterval(float seconds) {
-		TimeSpan t = TimeSpan.FromSeconds( seconds );		
-		return string.Format("P{0:D}DT{1:D}H{2:D}M{3:F}S",t.Days, t.Hours, t.Minutes, t.Seconds); //This is good enough to feed into SCORM, no need to include Years and Months
+		return ScormFormat.SecondsToTimeInterval(seconds);
 	}
-	
+
 	/// <summary>
 	/// Convert SCORM timeInterval to seconds.
 	/// </summary>
 	/// <returns>Seconds.</returns>
 	/// <param name="timeInterval">SCORM TimeInterval.</param>
 	private static float timeIntervalToSeconds(string timeInterval) {
-		float totalSeconds = 0f;
-		
-		if (timeInterval != "") {
-			
-			long hundredthsPerYear = 3155760000;
-			long hundredthsPerMonth = 262980000;
-			long hundredthsPerDay = 8640000;
-			long hundredthsPerHour = 360000;
-			long hundredthsPerMinute = 6000;
-			long hundredthsPerSecond = 100;
-			
-			Regex re = new Regex (@"P(([0-9]+)Y)?(([0-9]+)M)?(([0-9]+)D)?T?(([0-9]+)H)?(([0-9]+)M)?(([0-9]+)(\.[0-9]+)?S)?");
-			Match m = re.Match (timeInterval);
-			
-			int years = int.Parse (m.Groups [2].Value == "" ? "0" : m.Groups [2].Value);
-			int months = int.Parse (m.Groups [4].Value == "" ? "0" : m.Groups [4].Value);
-			int days = int.Parse (m.Groups [6].Value == "" ? "0" : m.Groups [6].Value);
-			int hours = int.Parse (m.Groups [8].Value == "" ? "0" : m.Groups [8].Value);
-			int minutes = int.Parse (m.Groups [10].Value == "" ? "0" : m.Groups [10].Value);
-			float seconds = float.Parse (m.Groups [12].Value == "" ? "0" : m.Groups [12].Value);
-			float tenths = float.Parse (m.Groups [13].Value == "" ? "0" : "0" + m.Groups [13].Value);
-			seconds = seconds + tenths;
-			
-			long totalHundredthsOfASecond = 0;		//work at the hundreths of a second level because that is all the precision that is required
-			totalHundredthsOfASecond += years * hundredthsPerYear;
-			totalHundredthsOfASecond += months * hundredthsPerMonth;
-			totalHundredthsOfASecond += days * hundredthsPerDay;
-			totalHundredthsOfASecond += hours * hundredthsPerHour;
-			totalHundredthsOfASecond += minutes * hundredthsPerMinute;
-			totalHundredthsOfASecond += Convert.ToInt64 (seconds * hundredthsPerSecond);
-			
-			totalSeconds = Convert.ToSingle (totalHundredthsOfASecond) / 100;
-		}
-		
-		return totalSeconds;
+		return ScormFormat.TimeIntervalToSeconds(timeInterval);
 	}
 
 }

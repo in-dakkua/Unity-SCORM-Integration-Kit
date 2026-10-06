@@ -82,6 +82,7 @@ public class ControllerMain : MonoBehaviour {
 	/// This is the point where you should 'kick off' the activity of your SCORM object.
 	/// Make sure the SCORM object does not begin or pauses until you receive this message.
 	/// </description>
+	[UnityEngine.Scripting.Preserve]	// called by name through BroadcastMessage/SendMessage
 	public void Scorm_Initialize_Complete() {
 
 		StartCoroutine (Startup());
@@ -108,6 +109,7 @@ public class ControllerMain : MonoBehaviour {
 	/// This is the point where you should exit the Scorm object.
 	/// Make sure the SCORM object does not exit until you receive this message.
 	/// </description>
+	[UnityEngine.Scripting.Preserve]	// called by name through BroadcastMessage/SendMessage
 	public void Scorm_Commit_Complete() {
 		ScormManager.Terminate ();
 	}
@@ -116,8 +118,8 @@ public class ControllerMain : MonoBehaviour {
 	/// Log the specified data.
 	/// </summary>
 	/// <param name="data">Data.</param>
+	[UnityEngine.Scripting.Preserve]	// called by name through BroadcastMessage/SendMessage
 	public void Log(string data) {
-		//UnityEngine.Application.ExternalCall("DebugPrint",data);						//Log into HTML Wrapper (don't use in production as it is messy, useful for testing in development)
 		GameObject.Find ("LogText").GetComponent<Text> ().text += data + "\n";			//Log into Log Text in Unity3D App
 	}
 
@@ -401,7 +403,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerScoreMinEditEnd(string value) {
-		ScormManager.SetScoreMin(float.Parse (value));
+		float min;
+		if (ScormFormat.TryParseUserReal(value, out min))
+			ScormManager.SetScoreMin(min);
 	}
 
 	/// <summary>
@@ -409,9 +413,12 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerScoreMaxEditEnd(string value) {
-		ScormManager.SetScoreMax(float.Parse (value));
-		float scoreScaled = float.Parse (GameObject.Find ("InputFieldScore").GetComponent<InputField> ().text) / float.Parse (value);
-		ScormManager.SetScoreScaled (scoreScaled);
+		float max;
+		if (!ScormFormat.TryParseUserReal(value, out max))
+			return;
+		ScormManager.SetScoreMax(max);
+		float raw = ScormFormat.ParseUserReal(GameObject.Find ("InputFieldScore").GetComponent<InputField> ().text);
+		SetScaledScore(raw, max);
 	}
 
 	/// <summary>
@@ -419,9 +426,19 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerScoreRawEditEnd(string value) {
-		ScormManager.SetScoreRaw(float.Parse (value));
-		float scoreScaled = float.Parse (value) / float.Parse (GameObject.Find ("InputFieldMax").GetComponent<InputField> ().text);
-		ScormManager.SetScoreScaled (scoreScaled);
+		float raw;
+		if (!ScormFormat.TryParseUserReal(value, out raw))
+			return;
+		ScormManager.SetScoreRaw(raw);
+		float max = ScormFormat.ParseUserReal(GameObject.Find ("InputFieldMax").GetComponent<InputField> ().text);
+		SetScaledScore(raw, max);
+	}
+
+	/// <summary>Sets cmi.score.scaled = raw / max, limited to the SCORM range [-1, 1]. Skipped when max is 0.</summary>
+	private void SetScaledScore(float raw, float max) {
+		if (Mathf.Approximately(max, 0f))
+			return;
+		ScormManager.SetScoreScaled (Mathf.Clamp(raw / max, -1f, 1f));
 	}
 
 	/// <summary>
@@ -429,7 +446,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerPreferenceAudioCaptioningEndEdit(string value) {
-		ScormManager.SetLearnerPreferenceAudioCaptioning (int.Parse (value));
+		int audioCaptioning;
+		if (int.TryParse (value, out audioCaptioning))
+			ScormManager.SetLearnerPreferenceAudioCaptioning (audioCaptioning);
 	}
 
 	/// <summary>
@@ -437,7 +456,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerPreferenceAudioLevelEndEdit(string value) {
-		ScormManager.SetLearnerPreferenceAudioLevel (float.Parse (value));
+		float audioLevel;
+		if (ScormFormat.TryParseUserReal (value, out audioLevel))
+			ScormManager.SetLearnerPreferenceAudioLevel (audioLevel);
 	}
 
 	/// <summary>
@@ -445,7 +466,9 @@ public class ControllerMain : MonoBehaviour {
 	/// </summary>
 	/// <param name="value">Value.</param>
 	public void OnLearnerPreferenceDeliverySpeedEndEdit(string value) {
-		ScormManager.SetLearnerPreferenceDeliverySpeed (float.Parse (value));
+		float deliverySpeed;
+		if (ScormFormat.TryParseUserReal (value, out deliverySpeed))
+			ScormManager.SetLearnerPreferenceDeliverySpeed (deliverySpeed);
 	}
 
 	/// <summary>
@@ -470,10 +493,10 @@ public class ControllerMain : MonoBehaviour {
 
 		if (commentText == "" | commentLocation == "") {												// Validate the Input Elements
 			if (commentText == "") {
-				inputFieldComment.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a comment!";
+				inputFieldComment.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a comment!";
 			}
 			if (commentLocation == "") {
-				inputFieldCommentLocation.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a location!";
+				inputFieldCommentLocation.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a location!";
 			}
 		} else {																						// Add the Comment
 			StudentRecord.CommentsFromLearner comment = new StudentRecord.CommentsFromLearner();
@@ -488,8 +511,8 @@ public class ControllerMain : MonoBehaviour {
 			//Reset Fields
 			inputFieldComment.GetComponent<InputField> ().text = "";
 			inputFieldCommentLocation.GetComponent<InputField> ().text = "";
-			inputFieldComment.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "New Learner Comment...";
-			inputFieldCommentLocation.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "Comment Location...";
+			inputFieldComment.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "New Learner Comment...";
+			inputFieldCommentLocation.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "Comment Location...";
 		}
 	}
 
@@ -506,10 +529,10 @@ public class ControllerMain : MonoBehaviour {
 		
 		if (objectiveId == "" | objectiveDescription == "") {												// Validate the Input Elements
 			if (objectiveId == "") {
-				inputFieldObjectiveId.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter an ID!";
+				inputFieldObjectiveId.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter an ID!";
 			}
 			if (objectiveDescription == "") {
-				inputFieldObjectiveDescription.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a description!";
+				inputFieldObjectiveDescription.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a description!";
 			}
 		} else {																							// Add the Objective
 			StudentRecord.Objectives newObjective = new StudentRecord.Objectives();
@@ -527,15 +550,15 @@ public class ControllerMain : MonoBehaviour {
 			newObjective.completionStatus = StudentRecord.CompletionStatusType.not_attempted;
 			newObjective.progressMeasure = 0f;
 
-			ScormManager.AddObjective(newObjective);
 			int index = ScormManager.GetObjectives().Count;
+			ScormManager.AddObjective(newObjective);
 			AddObjectiveToList(index, newObjective);
 			
 			//Reset Fields
 			inputFieldObjectiveId.GetComponent<InputField> ().text = "";
 			inputFieldObjectiveDescription.GetComponent<InputField> ().text = "";
-			inputFieldObjectiveId.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "Objective ID...";
-			inputFieldObjectiveDescription.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "Objective Description...";
+			inputFieldObjectiveId.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "Objective ID...";
+			inputFieldObjectiveDescription.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "Objective Description...";
 		}
 	}
 
@@ -556,28 +579,39 @@ public class ControllerMain : MonoBehaviour {
 
 		if (description == "" | weighting == "" | studentResponse == "") {										// Validate the Input Elements
 			if (description == "") {
-				inputFieldDescription.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a description!";
+				inputFieldDescription.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a description!";
 			}
 			if (weighting == "") {
-				inputFieldWeighting.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a weighting!";
+				inputFieldWeighting.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a weighting!";
 			}
 			if (studentResponse == "") {
-				inputFieldResponse.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a student response!";
+				inputFieldResponse.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a student response!";
 			}
 		} else {																								// Add the Interaction
 			StudentRecord.LearnerInteractionRecord newInteraction = new StudentRecord.LearnerInteractionRecord ();
 			newInteraction.id = ScormManager.GetNextInteractionId();
 			newInteraction.timeStamp = DateTime.Now;
-			newInteraction.type = StudentRecord.InteractionType.other;
-			newInteraction.weighting = float.Parse(weighting);
-			newInteraction.response = studentResponse;
+			// A true-false interaction exercises the SCORM vocabulary ("true-false"), the interaction objectives and the
+			// correct_responses pattern. The learner response must be "true" or "false" for this type, so it follows the
+			// "Correct" toggle; the typed response is kept in the description.
+			newInteraction.type = StudentRecord.InteractionType.true_false;
+			newInteraction.weighting = ScormFormat.ParseUserReal(weighting);
+			newInteraction.response = correct ? "true" : "false";
 			newInteraction.latency = 18.4f;
-			newInteraction.description = description;
-			StudentRecord.ResultType result = StudentRecord.ResultType.incorrect;
-			if (correct) {
-				result = StudentRecord.ResultType.correct;
+			newInteraction.description = description + " (response: " + studentResponse + ")";
+			newInteraction.result = correct ? StudentRecord.ResultType.correct : StudentRecord.ResultType.incorrect;
+
+			newInteraction.objectives = new List<StudentRecord.LearnerInteractionObjective>();
+			List<StudentRecord.Objectives> objectives = ScormManager.GetObjectives();
+			if (objectives != null && objectives.Count > 0 && !string.IsNullOrEmpty(objectives[0].id)) {
+				StudentRecord.LearnerInteractionObjective interactionObjective = new StudentRecord.LearnerInteractionObjective();
+				interactionObjective.id = objectives[0].id;
+				newInteraction.objectives.Add(interactionObjective);
 			}
-			newInteraction.result = result;
+
+			StudentRecord.LearnerInteractionCorrectResponse correctResponse = new StudentRecord.LearnerInteractionCorrectResponse();
+			correctResponse.pattern = "true";
+			newInteraction.correctResponses = new List<StudentRecord.LearnerInteractionCorrectResponse> { correctResponse };
 
 			ScormManager.AddInteraction (newInteraction);
 			AddLearnerInteractionToList (newInteraction);
@@ -587,9 +621,9 @@ public class ControllerMain : MonoBehaviour {
 			inputFieldWeighting.GetComponent<InputField>().text = "";
 			inputFieldResponse.GetComponent<InputField>().text = "";
 			toggleCorrect.GetComponent<Toggle>().isOn = true;
-			inputFieldDescription.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "Description...";
-			inputFieldWeighting.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "Weighting...";
-			inputFieldResponse.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "Student response...";
+			inputFieldDescription.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "Description...";
+			inputFieldWeighting.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "Weighting...";
+			inputFieldResponse.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "Student response...";
 		}
 
 	}
@@ -604,11 +638,11 @@ public class ControllerMain : MonoBehaviour {
 		string location = inputFieldLocation.GetComponent<InputField>().text;
 
 		if (location == "") {
-			inputFieldLocation.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a location!";
+			inputFieldLocation.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "You must enter a location!";
 		} else {
 			//Reset
 			inputFieldLocation.GetComponent<InputField>().text = "";
-			inputFieldLocation.transform.FindChild ("Placeholder").gameObject.GetComponent<Text> ().text = "Location string...";
+			inputFieldLocation.transform.Find ("Placeholder").gameObject.GetComponent<Text> ().text = "Location string...";
 
 			ScormManager.SetSessionTime (currentTime);
 			ScormManager.SetLocation (location);

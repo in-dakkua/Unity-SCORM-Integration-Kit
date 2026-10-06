@@ -1,12 +1,12 @@
 /***********************************************************************************************************************
  * Unity-SCORM Integration Kit
- * 
+ *
  * Unity3D Editor Plugin for in Unity3D functions (creation, and export)
- * 
+ *
  * Copyright (C) 2015, Richard Stals (http://stals.com.au)
  * ==========================================
- * 
- * 
+ *
+ *
  * Derived from:
  * Unity-SCORM Integration Toolkit Version 1.0 Beta
  * ==========================================
@@ -29,21 +29,20 @@
 
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
-using System.Web;
-using Ionic.Zip;
 using System.IO;
 using System;
- 
+
 /// <summary>
 /// This class handles the editor window for the Unity-SCORM Integration Kit
 /// </summary>
 public class ScormExport : EditorWindow {
 
 	public GUISkin skin;
-    
+
 	static bool foldout1,foldout2;
-	static ScormExport window; 
+	static ScormExport window;
 	static Vector2 scrollview;
 
     /// <summary>
@@ -51,18 +50,17 @@ public class ScormExport : EditorWindow {
     /// </summary>
     [MenuItem("SCORM/Export SCORM Package",false,0)]
     static void ShowWindow() {
-		EditorUtility.DisplayDialog("Export this scene as a WebPlayer first","Because this software is developed for Unity Basic, we cannot automatically build the web player. Please export your simulation to the web player first. Remember to select the SCORM Integration web player template.","OK");
         window = (ScormExport)EditorWindow.GetWindow (typeof (ScormExport));
 		window.Show ();
 		foldout1=foldout2 = true;
     }
-	
+
 	/// <summary>
 	/// Get existing open window or if none, make a new one.
 	/// </summary>
 	static void Init () {
 		window = (ScormExport)EditorWindow.GetWindow (typeof (ScormExport));
-		window.ShowAuxWindow();		
+		window.ShowAuxWindow();
 	}
 
 	/// <summary>
@@ -78,9 +76,9 @@ public class ScormExport : EditorWindow {
 		} else {
 			EditorUtility.DisplayDialog("SCORM Manager is already present","You only need one SCORM Manager game object in your simulation. Remember to place objects that need messages from the ScormManager under it in the scene heirarchy.","OK");
 		}
-		
+
     }
-	
+
 	/// <summary>
 	/// The menu item to display a short about message
 	/// </summary>
@@ -108,131 +106,62 @@ public class ScormExport : EditorWindow {
 	        CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
 	    foreach (FileInfo file in source.GetFiles()) {
 			// Skip hidden files and meta files
-			if (file.Name.Substring(0,1) != "." & file.Name.Substring(file.Name.Length - 4) != "meta") {
+			if (!file.Name.StartsWith(".") && !file.Name.EndsWith(".meta")) {
 				file.CopyTo (Path.Combine (target.FullName, file.Name));
 			}
 		}
 	}
 
 	/// <summary>
-	/// Convert Seconds to the SCORM timeInterval.
+	/// Publish the WebGL build in "Folder Location" as a SCORM 2004 zip file.
 	/// </summary>
-	/// <returns>timeInterval string.</returns>
-	/// <param name="seconds">Seconds.</param>
-	private static string SecondsToTimeInterval(float seconds) {
-		TimeSpan t = TimeSpan.FromSeconds( seconds );		
-		return string.Format("P{0:D}DT{1:D}H{2:D}M{3:F}S",t.Days, t.Hours, t.Minutes, t.Seconds); //This is good enough to feed into SCORM, no need to include Years and Months
+	void Publish() {
+		ScormPackageSettings settings = ScormPackageSettings.FromPlayerPrefs();
+		string buildDir = PlayerPrefs.GetString("Course_Export", ScormBuildCli.DefaultBuildDir);
+		if (!File.Exists(Path.Combine(buildDir, "index.html"))) {
+			EditorUtility.DisplayDialog("WebGL build not found", "There is no WebGL build (index.html) in:\n" + buildDir + "\n\nUse 'Build WebGL + Publish', or choose the folder of a WebGL build made with the SCORM template.", "OK");
+			return;
+		}
+		List<string> errors = settings.Validate();
+		if (errors.Count > 0) {
+			EditorUtility.DisplayDialog("Invalid SCORM properties", string.Join("\n", errors.ToArray()), "OK");
+			return;
+		}
+		string zipfile = EditorUtility.SaveFilePanel("Choose Output File", Path.GetDirectoryName(Path.GetFullPath(buildDir)), settings.courseTitle, "zip");
+		if (zipfile == "")
+			return;
+		try {
+			ScormPackageResult result = ScormPackager.Package(buildDir, zipfile, settings);
+			foreach (string w in result.warnings)
+				Debug.LogWarning("[SCORM] " + w);
+			string warnings = result.warnings.Count > 0 ? "\n\nWarnings:\n" + string.Join("\n", result.warnings.ToArray()) : "";
+			EditorUtility.DisplayDialog("SCORM Package Published", "The SCORM Package has been published to " + result.zipPath + warnings, "OK");
+		} catch (Exception e) {
+			Debug.LogError("[SCORM] " + e);
+			EditorUtility.DisplayDialog("SCORM Package not published", e.Message, "OK");
+		}
 	}
 
 	/// <summary>
-	/// Parses the float.
+	/// Build the enabled scenes for WebGL with the SCORM template into "Folder Location", then publish.
 	/// </summary>
-	/// <remarks>float.Parse fails on an empty string, so we use this to return a 0 if an empty string is encountered.</remarks>
-	/// <returns>The float.</returns>
-	/// <param name="str">String.</param>
-	private static float ParseFloat(string str) {
-		float result = 0f;
-		float.TryParse(str,out result);
-		return result;
-	}
-
-	/// <summary>
-	/// Publish this SCORM package to a conformant zip file.
-	/// </summary>
-    void Publish() {
-
-		string timeLimitAction = "";
-		switch (PlayerPrefs.GetInt ("Time_Limit_Action")) {
-		case 0:
-			timeLimitAction = "";
-			break;
-		case 1:
-			timeLimitAction = "exit,message";
-			break;
-		case 2:
-			timeLimitAction = "exit,no message";
-			break;
-		case 3:
-			timeLimitAction = "continue,message";
-			break;
-		case 4:
-			timeLimitAction = "continue,no message";
-			break;
+	void BuildAndPublish() {
+		string buildDir = PlayerPrefs.GetString("Course_Export");
+		if (string.IsNullOrEmpty(buildDir)) {
+			buildDir = ScormBuildCli.DefaultBuildDir;
+			PlayerPrefs.SetString("Course_Export", buildDir);
 		}
-
-		string timeLimit = SecondsToTimeInterval (ParseFloat(PlayerPrefs.GetString ("Time_Limit_Secs")));
-
-		string webplayer = PlayerPrefs.GetString("Course_Export");
-		string tempdir = System.IO.Path.GetTempPath() + System.IO.Path.GetRandomFileName();
-		System.IO.Directory.CreateDirectory(tempdir);
-		CopyFilesRecursively(new System.IO.DirectoryInfo(webplayer),new System.IO.DirectoryInfo(tempdir));
-		string zipfile = EditorUtility.SaveFilePanel("Choose Output File",webplayer,PlayerPrefs.GetString("Course_Title"),"zip");
-
-		if(zipfile!= "") {
-			if(File.Exists(zipfile))
-				File.Delete(zipfile);
-			   
-			Ionic.Zip.ZipFile zip = new Ionic.Zip.ZipFile(zipfile);
-			zip.AddDirectory(tempdir); 
-			
-			zip.AddItem(Application.dataPath + "/SCORM/Plugins/2004");
-				
-			string manifest = 	"<?xml version=\"1.0\" standalone=\"no\" ?>\n" +
-								"<manifest identifier=\""+PlayerPrefs.GetString("Manifest_Identifier")+"\" version=\"1\"\n" +
-                  				"\t\txmlns = \"http://www.imsglobal.org/xsd/imscp_v1p1\"\n" +
-                 				"\t\txmlns:adlcp = \"http://www.adlnet.org/xsd/adlcp_v1p3\"\n" +
-								"\t\txmlns:adlseq = \"http://www.adlnet.org/xsd/adlseq_v1p3\"\n" +
-								"\t\txmlns:adlnav = \"http://www.adlnet.org/xsd/adlnav_v1p3\"\n" +
-								"\t\txmlns:imsss = \"http://www.imsglobal.org/xsd/imsss\"\n" +
-								"\t\txmlns:xsi = \"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-								"\t\txmlns:lom=\"http://ltsc.ieee.org/xsd/LOM\"\n" +
-								"\t\txsi:schemaLocation = \"http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd\n" +
-								"\t\t\thttp://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd\n" +
-								"\t\t\thttp://www.adlnet.org/xsd/adlseq_v1p3 adlseq_v1p3.xsd\n" +
-								"\t\t\thttp://www.adlnet.org/xsd/adlnav_v1p3 adlnav_v1p3.xsd\n" +
-								"\t\t\thttp://www.imsglobal.org/xsd/imsss imsss_v1p0.xsd\n" +
-								"\t\t\thttp://ltsc.ieee.org/xsd/LOM lom.xsd\" >\n" +
-  								"<metadata>\n" +
-								"\t<schema>ADL SCORM</schema>\n" +
-    							"\t<schemaversion>2004 4th Edition</schemaversion>\n" +
-								"<lom:lom>\n" +
-      							"\t<lom:general>\n" +
-								"\t\t<lom:description>\n" +
-								"\t\t\t<lom:string language=\"en-US\">"+PlayerPrefs.GetString("Course_Description")+"</lom:string>\n" +
-								"\t\t</lom:description>\n" +
-      							"\t</lom:general>\n" +
-								"\t</lom:lom>\n" +
-  								"</metadata>\n" +
-								"<organizations default=\"B0\">\n" +
-								"\t<organization identifier=\"B0\" adlseq:objectivesGlobalToSystem=\"false\">\n" +
-								"\t\t<title>"+PlayerPrefs.GetString("Course_Title")+"</title>\n" +
-      							"\t\t<item identifier=\"i1\" identifierref=\"r1\" isvisible=\"true\">\n" +
-								"\t\t\t<title>"+PlayerPrefs.GetString("SCO_Title")+"</title>\n" +
-								"\t\t\t<adlcp:timeLimitAction>"+timeLimitAction+"</adlcp:timeLimitAction>\n" +
-								"\t\t\t<adlcp:dataFromLMS>"+PlayerPrefs.GetString("Data_From_Lms")+"</adlcp:dataFromLMS> \n" +
-								"\t\t\t<adlcp:completionThreshold completedByMeasure = \""+ (System.Convert.ToBoolean(PlayerPrefs.GetInt("completedByMeasure"))).ToString().ToLower() +"\" minProgressMeasure= \""+PlayerPrefs.GetFloat("minProgressMeasure") +"\" />\n" +
-								"\t\t\t<imsss:sequencing>\n" +
-								"\t\t\t<imsss:limitConditions attemptAbsoluteDurationLimit=\""+timeLimit+"\"/>\n" +
-								"\t\t\t</imsss:sequencing>\n" +
-								"\t\t</item>\n" +
-								"\t</organization>\n" +
-								"</organizations>\n" +
-								"<resources>\n" +
-								"\t<resource identifier=\"r1\" type=\"webcontent\" adlcp:scormType=\"sco\" href=\""+PlayerPrefs.GetString("Course_Export_Name")+".html\">\n" +
-								"\t\t<file href=\""+PlayerPrefs.GetString("Course_Export_Name")+".html\" />\n" +
-								"\t\t<file href=\"scripts/scorm.js\" />\n" +
-								"\t\t<file href=\"scripts/ScormSimulator.js\" />\n" +
-								"\t\t<file href=\""+PlayerPrefs.GetString("Course_Export_Name")+".unity3d\" />\n" +
-								"\t</resource>\n" +
-  								"</resources>\n" +
-								"</manifest>";
-				
-				zip.AddEntry("imsmanifest.xml",".",System.Text.ASCIIEncoding.ASCII.GetBytes(manifest));
-			
-			zip.Save();
-			EditorUtility.DisplayDialog("SCORM Package Published","The SCORM Package has been published to "+zipfile,"OK");
-
+		bool built = false;
+		try {
+			built = ScormBuildCli.BuildWebGLPlayer(buildDir, "gzip-fallback");
+		} catch (Exception e) {
+			Debug.LogError("[SCORM] " + e);
 		}
+		if (!built) {
+			EditorUtility.DisplayDialog("WebGL build failed", "See the Console for details.", "OK");
+			return;
+		}
+		Publish();
 	}
 
 	/// <summary>
@@ -242,44 +171,39 @@ public class ScormExport : EditorWindow {
 		EditorStyles.miniLabel.wordWrap = true;
 		EditorStyles.foldout.fontStyle = FontStyle.Bold;
 
-		// Foldout 1 - the Prevuously exported web player location and details.
+		// Foldout 1 - the WebGL build location.
 		GUILayout.BeginHorizontal();
-		foldout1 = EditorGUILayout.Foldout(foldout1,"Exported Player Location", EditorStyles.foldout);
+		foldout1 = EditorGUILayout.Foldout(foldout1,"WebGL Build Location", EditorStyles.foldout);
 
-		bool help1 = GUILayout.Button(new GUIContent ("Help", "Help for the Exported Player Location section"),EditorStyles.miniBoldLabel);
+		bool help1 = GUILayout.Button(new GUIContent ("Help", "Help for the WebGL Build Location section"),EditorStyles.miniBoldLabel);
 		if(help1)
-			EditorUtility.DisplayDialog("Help","You must export this simulation as a webplayer, then tell this packaging tool the location of that exported webplayer folder. Be sure to select the SCORM webplayer template, or the necessary JavaScript components will not be included, and the system will fail to connect to the LMS.","OK");
+			EditorUtility.DisplayDialog("Help","'Build WebGL + Publish' builds the enabled scenes for WebGL with the SCORM template (PROJECT:SCORM, Gzip + decompression fallback) into this folder and then publishes it. 'Publish' packages a WebGL build that already exists in this folder; it must have been built with the SCORM WebGL template, or the JavaScript that connects to the LMS will be missing.","OK");
 
 		GUILayout.EndHorizontal();
 
-
 		if(foldout1) {
 			GUILayout.BeginVertical("TextArea");
-			GUILayout.Label("Choose the location of the folder where the Webplayer was exported.", EditorStyles.miniLabel);
-			PlayerPrefs.SetString("Course_Export", EditorGUILayout.TextField("Folder Location", PlayerPrefs.GetString("Course_Export")));
-			PlayerPrefs.SetString("Course_Export_Name", EditorGUILayout.TextField("Application Name", PlayerPrefs.GetString("Course_Export_Name")));
+			GUILayout.Label("Folder of the WebGL build (relative to the project or absolute). Default: " + ScormBuildCli.DefaultBuildDir, EditorStyles.miniLabel);
+			PlayerPrefs.SetString("Course_Export", EditorGUILayout.TextField("Folder Location", PlayerPrefs.GetString("Course_Export", ScormBuildCli.DefaultBuildDir)));
 
 			GUI.skin.button.fontSize = 8;
 			GUILayout.BeginHorizontal();
-			GUILayout.Space(window.position.width - 85);	
-			bool ChooseDir = GUILayout.Button(new GUIContent("Choose Folder","Select the folder containing the webplayer"),GUILayout.ExpandWidth(false));
+			GUILayout.FlexibleSpace();
+			bool ChooseDir = GUILayout.Button(new GUIContent("Choose Folder","Select the folder containing the WebGL build"),GUILayout.ExpandWidth(false));
 			GUILayout.EndHorizontal();
 			if(ChooseDir)
 			{
-				string export_dir = EditorUtility.OpenFolderPanel("Choose WebPlayer",PlayerPrefs.GetString("Course_Export"),"WebPlayer");
+				string export_dir = EditorUtility.OpenFolderPanel("Choose WebGL build",PlayerPrefs.GetString("Course_Export"),"WebGL");
 				if(export_dir != "")
-				{
 					PlayerPrefs.SetString("Course_Export",export_dir);
-					PlayerPrefs.SetString("Course_Export_Name",export_dir.Substring(export_dir.LastIndexOf('/')+1,(export_dir.Length-(export_dir.LastIndexOf('/')+1))));
-				}
 			}
 
 	        GUILayout.EndVertical();
 		}
 
 
-		// Foldout 2 - Set the SCORM properties (manhy of the options available in the imsmanifest.xml file)
-		GUILayout.BeginHorizontal();                            
+		// Foldout 2 - Set the SCORM properties (many of the options available in the imsmanifest.xml file)
+		GUILayout.BeginHorizontal();
 		foldout2 = EditorGUILayout.Foldout(foldout2,"SCORM Properties", EditorStyles.foldout);
 
 		bool help2 = GUILayout.Button(new GUIContent ("Help", "Help for the SCORM Properties section"),EditorStyles.miniBoldLabel);
@@ -287,39 +211,54 @@ public class ScormExport : EditorWindow {
 			EditorUtility.DisplayDialog("Help","The properties will control how the LMS controls and displays your SCORM content. These values will be written into the imsmanifest.xml file within the exported zip package. There are many other settings that can be specified in the manifest - for more information read the Content Aggregation Model documents at http://www.adlnet.gov/capabilities/scorm","OK");
 
 		GUILayout.EndHorizontal();
-		
+
 		if(foldout2) {
 			GUILayout.BeginVertical("TextArea");
 			GUILayout.Label("Information about your SCORM package including the title and various configuration values.", EditorStyles.miniLabel);
+
+			int edition = EditorGUILayout.Popup(new GUIContent("Edition:", "SCORM 2004 edition written to the manifest. 3rd Edition is the most widely supported (e.g. Moodle)."), PlayerPrefs.GetInt(ScormPackageSettings.PrefEdition, 0), new GUIContent[] { new GUIContent("SCORM 2004 3rd Edition"), new GUIContent("SCORM 2004 4th Edition") });
+			PlayerPrefs.SetInt(ScormPackageSettings.PrefEdition, edition);
+
 			PlayerPrefs.SetString("Manifest_Identifier", EditorGUILayout.TextField(new GUIContent("Identifier:","The unique IMS Manifest Identifier (e.g. au.com.stals.myapp)"), PlayerPrefs.GetString("Manifest_Identifier")));
 			PlayerPrefs.SetString("Course_Title", EditorGUILayout.TextField(new GUIContent("Title:","The title of the SCORM content, as you want it to be displayed in the learning management system (LMS)"), PlayerPrefs.GetString("Course_Title")));
 			PlayerPrefs.SetString("Course_Description", EditorGUILayout.TextField(new GUIContent("Description:","Description of the SCORM content."), PlayerPrefs.GetString("Course_Description")));
 			PlayerPrefs.SetString("SCO_Title", EditorGUILayout.TextField(new GUIContent("Module Title:","The title of the Unity content.  Note, this title may show as the first item in an LMS-provided table of contents."), PlayerPrefs.GetString("SCO_Title")));
 			PlayerPrefs.SetString("Data_From_Lms", EditorGUILayout.TextField(new GUIContent("Launch Data:","User-defined string value that can be used as initial learning experience state data."), PlayerPrefs.GetString("Data_From_Lms")));
 
-			bool progress = GUILayout.Toggle(System.Convert.ToBoolean(PlayerPrefs.GetInt("completedByMeasure")),new GUIContent("Completed By Measure","If true, then this activity's completion status will be determined by the progress measure's relation to the minimum progress measure. This derived completion status will override what it explicitly set."));
-			PlayerPrefs.SetInt("completedByMeasure",System.Convert.ToInt16(progress));
-			if(progress)
-			{
-				GUILayout.Label(new GUIContent("Minimum Progress Measure: " + PlayerPrefs.GetFloat("minProgressMeasure").ToString(),"Defines a minimum completion percentage for this activity for use in conjunction with completed by measure.") , EditorStyles.miniLabel);
-				PlayerPrefs.SetFloat("minProgressMeasure",(float)System.Math.Round(GUILayout.HorizontalSlider(PlayerPrefs.GetFloat("minProgressMeasure"),0.0f,1.0f)*100.0f)/100.0f);
+			foreach (string editionWarning in ScormManifestBuilder.GetEditionWarnings(ScormPackageSettings.FromPlayerPrefs()))
+				EditorGUILayout.HelpBox(editionWarning, MessageType.Warning);
+
+			if (edition == 0) {
+				PlayerPrefs.SetString(ScormPackageSettings.PrefCompletionThreshold, EditorGUILayout.TextField(new GUIContent("Completion Threshold:","Optional (0..1, e.g. 0.8). Progress measure at which the LMS considers the SCO completed. Empty = not written."), PlayerPrefs.GetString(ScormPackageSettings.PrefCompletionThreshold)));
+			} else {
+				bool progress = GUILayout.Toggle(PlayerPrefs.GetInt("completedByMeasure") != 0,new GUIContent("Completed By Measure","If true, then this activity's completion status will be determined by the progress measure's relation to the minimum progress measure. This derived completion status will override what it explicitly set."));
+				PlayerPrefs.SetInt("completedByMeasure",progress ? 1 : 0);
+				if(progress)
+				{
+					GUILayout.Label(new GUIContent("Minimum Progress Measure: " + ScormFormat.ToReal(PlayerPrefs.GetFloat("minProgressMeasure", 1f)),"Defines a minimum completion percentage for this activity for use in conjunction with completed by measure.") , EditorStyles.miniLabel);
+					PlayerPrefs.SetFloat("minProgressMeasure",(float)System.Math.Round(GUILayout.HorizontalSlider(PlayerPrefs.GetFloat("minProgressMeasure", 1f),0.0f,1.0f)*100.0f)/100.0f);
+				}
+				GUILayout.Label("If set, this indicates that this activity’s completion status will be determined soley by the relation of the progress measure to Minimum Progress Measure.", EditorStyles.miniLabel);
 			}
-			GUILayout.Label("If set, this indicates that this activity’s completion status will be determined soley by the relation of the progress measure to Minimum Progress Measure.", EditorStyles.miniLabel);
-
-
 
 			GUILayout.Label("Select the Time Limit Action to be passed to the SCO", EditorStyles.largeLabel);
 			PlayerPrefs.SetInt("Time_Limit_Action",EditorGUILayout.Popup(PlayerPrefs.GetInt("Time_Limit_Action"),new string[]{"Not Set","exit,message","exit,no message","continue,message","continue,no message"},GUILayout.ExpandWidth(false)));
-			PlayerPrefs.SetString("Time_Limit_Secs", EditorGUILayout.TextField(new GUIContent("Time Limit (secs):","The time limit for this SCO in seconds."), PlayerPrefs.GetString("Time_Limit_Secs")));
+			PlayerPrefs.SetString("Time_Limit_Secs", EditorGUILayout.TextField(new GUIContent("Time Limit (secs):","The time limit for this SCO in seconds (empty or 0 = no limit)."), PlayerPrefs.GetString("Time_Limit_Secs")));
 
 			GUILayout.EndVertical();
 		}
 
-		// Publish Button
-		GUIStyle s =  new GUIStyle();
+		// Publish Buttons
 		GUI.skin.button.fontSize = 12;
-		bool publish = GUILayout.Button(new GUIContent ("Publish", "Export this course to a SCORM package."));
-		if(publish)
-			Publish();
+		// Builds and file dialogs must not run inside OnGUI (they break the IMGUI layout): run them on the next editor
+		// update and leave the current GUI pass. ExitGUI works by throwing, so it must stay outside any try/catch.
+		if(GUILayout.Button(new GUIContent ("Publish", "Package the WebGL build in 'Folder Location' as a SCORM zip."))) {
+			EditorApplication.delayCall += Publish;
+			GUIUtility.ExitGUI();
+		}
+		if(GUILayout.Button(new GUIContent ("Build WebGL + Publish", "Build the enabled scenes for WebGL with the SCORM template into 'Folder Location', then package it."))) {
+			EditorApplication.delayCall += BuildAndPublish;
+			GUIUtility.ExitGUI();
+		}
     }
 }
