@@ -131,6 +131,19 @@ public class ScormAPIWrapper {
 	}
 
 	/// <summary>
+	/// Raised after every SCORM Run-Time API call (Initialize, GetValue, SetValue, Commit, Terminate) with its
+	/// result and LMS error code. Static because ScormManager creates a new wrapper on every Initialize.
+	/// </summary>
+	/// <remarks>
+	/// Handlers run synchronously on the main thread. An exception thrown by a handler is logged and swallowed so a
+	/// broken log UI cannot break the communication with the LMS.
+	/// Handlers should not call the SCORM API. If they do, the call works normally but does not raise the event again
+	/// (no recursion), and the outer call keeps its own LastErrorCode.
+	/// The event is static: a MonoBehaviour must subscribe in OnEnable and unsubscribe in OnDisable.
+	/// </remarks>
+	public static event Action<ScormCallInfo> CallCompleted;
+
+	/// <summary>
 	/// Start up the SCORM API Wrapper.
 	/// </summary>
 	/// <remarks>
@@ -142,10 +155,16 @@ public class ScormAPIWrapper {
 		IsApiFound = wglIsApiFound() == 1;
 		IsScorm2004 = wglIsScorm2004() == 1;
 
-		if (!IsApiFound)
+		int error = 0;
+		string errorText = "";
+		if (!IsApiFound) {
+			errorText = NoApiText;
 			Log("No LMS API found: running without an LMS");
-		else if (!IsInitialized)
-			Log("LMS Initialize failed: " + LastErrorDescription());
+		} else if (!IsInitialized) {
+			ReadLastError(out error, out errorText);
+			Log("LMS Initialize failed: " + error + " " + errorText);
+		}
+		RaiseCall(ScormCallOperation.Initialize, "", "", IsInitialized ? "true" : "false", IsInitialized, error, errorText);
 
 		if(IsScorm2004)
 			Log("ScormVersion is 2004");
@@ -158,6 +177,9 @@ public class ScormAPIWrapper {
 	public void SetCallbackValue(string input) {
 	}
 
+	/// <summary>Error code reported by the LMS for the last GetValue/SetValue/Commit/Terminate (0 = no error).</summary>
+	public int LastErrorCode { get; private set; }
+
 	/// <summary>
 	/// Get a value from the javascript API
 	/// </summary>
@@ -167,12 +189,19 @@ public class ScormAPIWrapper {
 		Log("Get " + identifier);
 		string result = wglGetValue(identifier) ?? "";
 
-		int error = IsApiFound ? wglGetLastError() : 0;
+		int error = 0;
+		string errorText = "";
+		if (IsApiFound)
+			ReadLastError(out error, out errorText);
+		else
+			errorText = NoApiText;
+		LastErrorCode = error;
 		if (error == 0)
 			Log("Got  " + result);
 		else
-			Log("Error:" + error + " " + (wglGetErrorString(error) ?? "") + " Result: " + result);
+			Log("Error:" + error + " " + errorText + " Result: " + result);
 
+		RaiseCall(ScormCallOperation.GetValue, identifier, "", result, IsApiFound && error == 0, error, error == 0 && IsApiFound ? "" : errorText);
 		return result;
 	}
 
@@ -185,10 +214,14 @@ public class ScormAPIWrapper {
 	public bool SetValue(string identifier, string value) {
 		Log("Set  " + identifier + " to " + value);
 		bool result = wglSetValue(identifier, value ?? "") == 1;
+		int error;
+		string errorText;
+		FailureError(result, out error, out errorText);
 		if (result)
 			Log("Result true");
 		else
-			Log("Error:" + LastErrorDescription());
+			Log("Error:" + error + " " + errorText);
+		RaiseCall(ScormCallOperation.SetValue, identifier, value, result ? "true" : "false", result, error, errorText);
 		return result;
 	}
 
@@ -197,8 +230,12 @@ public class ScormAPIWrapper {
 	/// </summary>
 	public bool Commit() {
 		bool result = wglCommit() == 1;
+		int error;
+		string errorText;
+		FailureError(result, out error, out errorText);
 		if (!result)
-			Log("Commit failed: " + LastErrorDescription());
+			Log("Commit failed: " + error + " " + errorText);
+		RaiseCall(ScormCallOperation.Commit, "", "", result ? "true" : "false", result, error, errorText);
 		return result;
 	}
 
@@ -207,16 +244,61 @@ public class ScormAPIWrapper {
 	/// </summary>
 	public bool Terminate() {
 		bool result = wglTerminate() == 1;
+		int error;
+		string errorText;
+		FailureError(result, out error, out errorText);
 		if (!result)
-			Log("Terminate failed: " + LastErrorDescription());
+			Log("Terminate failed: " + error + " " + errorText);
+		RaiseCall(ScormCallOperation.Terminate, "", "", result ? "true" : "false", result, error, errorText);
 		return result;
 	}
 
-	string LastErrorDescription() {
-		if (!IsApiFound)
-			return "no LMS API";
-		int error = wglGetLastError();
-		return error + " " + (wglGetErrorString(error) ?? "");
+	const string NoApiText = "No LMS API";
+
+	// A successful Set/Commit/Terminate implies error 0, so GetLastError is only called on failure.
+	void FailureError(bool succeeded, out int error, out string errorText) {
+		error = 0;
+		errorText = "";
+		if (succeeded) {
+			LastErrorCode = 0;
+			return;
+		}
+		if (!IsApiFound) {
+			errorText = NoApiText;
+			LastErrorCode = 0;
+			return;
+		}
+		ReadLastError(out error, out errorText);
+		LastErrorCode = error;
+	}
+
+	void ReadLastError(out int error, out string errorText) {
+		error = wglGetLastError();
+		errorText = error == 0 ? "" : (wglGetErrorString(error) ?? "");
+	}
+
+	static bool raising;
+
+	void RaiseCall(ScormCallOperation operation, string element, string value, string result, bool succeeded, int error, string errorText) {
+		Action<ScormCallInfo> handlers = CallCompleted;
+		if (handlers == null || raising)
+			return;
+		int lastErrorCode = LastErrorCode;
+		raising = true;
+		try {
+			ScormCallInfo info = new ScormCallInfo(operation, element, value, result, succeeded, error, errorText);
+			foreach (Delegate handler in handlers.GetInvocationList()) {
+				try {
+					((Action<ScormCallInfo>)handler)(info);
+				} catch (Exception e) {
+					UnityEngine.Debug.LogException(e);
+				}
+			}
+		} finally {
+			raising = false;
+			// A handler that called the API (on this or another wrapper) must not change the error of this call.
+			LastErrorCode = lastErrorCode;
+		}
 	}
 
 	/// <summary>

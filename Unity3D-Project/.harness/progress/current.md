@@ -27,3 +27,19 @@ Estado del visual check: redactado, pendiente de firma humana
 - Paso 8 smoke HTTP: 18/18 ficheros 200.
 - Paso 9 visual check redactado (sin firmar): .harness/progress/visual_check_scorm2004-webgl-e2e-build.md
 - Informe: .harness/progress/impl_scorm2004-webgl-e2e-build.md. Pendiente: firma humana del visual check + reviewer.
+
+---
+
+Feature en curso: F002 — scorm-scenario-api
+Inicio: 2026-10-06
+Plan: ver .harness/progress/plan_scorm-scenario-api.md
+Estado del gate humano: no requerido (requires_plan_approval: false, eximido por el humano en chat 2026-10-06)
+
+## Notas del implementer (F002)
+- F002 -> in_progress. F001 sigue in_progress (no lo toco): init.sh paso 6 dará FAIL por 2 in_progress.
+- Código F002 escrito (runtime, editor, scorm.js, tests). Compilación offline con Roslyn (csc del Editor contra netstandard + UnityEngine/UnityEditor/NUnit) OK, 0 errores. Test JS headless con M1: PASS (y falla contra el scorm.js de HEAD, que es el control negativo).
+- Bloqueo temporal: el humano tiene Unity Editor abierto (PID 60092). Batchmode (compilación real + tests EditMode) pendiente hasta que lo cierre. ProjectSettings.asset aparece modificado por el Editor abierto, no por mí.
+- Editor cerrado. Batchmode EditMode: 57 tests, 56 pass, 0 fail, 1 skip (XSD 3rd). init.sh: paso 7 OK; exit 1 SOLO por paso 6 (2 in_progress: F001+F002).
+- EditorBuildSettings.asset re-serializado por Unity 6 / paquetes AI del humano: no revertido, decisión del leader.
+- Informe: .harness/progress/impl_scorm-scenario-api.md. Pendiente: reviewer.
+- Ronda 2 (review CHANGES_REQUESTED): H1, H2, H3, L1-L4, L6 (documentado como D5) y L7 corregidos. EditMode 67/66/0/1 y init.sh exit 0. Ver la sección "Ronda 2" en impl_scorm-scenario-api.md. Pendiente: re-review.

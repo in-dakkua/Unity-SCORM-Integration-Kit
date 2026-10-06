@@ -1,7 +1,7 @@
 {
   "unity_version": "6000.3.21f1",
   "unity_version_source": "ProjectSettings/ProjectVersion.txt (6000.3.21f1), verificado 2026-10-05.",
-  "scripts_root": ["Assets/SCORM/_Scripts", "Assets/SCORM/Editor"],
+  "scripts_root": ["Assets/SCORM/_Scripts", "Assets/SCORM/Editor", "Assets/SCORM/Demo"],
   "tests_root": ["Assets/SCORM/Tests"],
   "architecture_status": "adapted_to_existing",
   "architecture_notes": "Kit SCORM con carpeta plana: Assets/SCORM/_Scripts (runtime) y Assets/SCORM/Editor (exportador). Sin Core/Gameplay/UI; architecture.md describe esta estructura real.",

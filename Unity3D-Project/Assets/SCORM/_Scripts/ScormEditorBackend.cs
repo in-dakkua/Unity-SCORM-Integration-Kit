@@ -17,13 +17,33 @@ using System.Text.RegularExpressions;
 /// In-memory SCORM 2004 Run-Time API. ScormAPIWrapper uses it whenever the code does not run inside a WebGL player,
 /// so Play Mode in the Editor and EditMode tests work without a browser or an LMS.
 /// </summary>
+/// <remarks>
+/// It behaves like a strict LMS for the rules the kit depends on: collection indexes must be contiguous (351),
+/// cmi.objectives.n.id / cmi.interactions.n.id must be set before the other fields of that index (408), an objective
+/// id cannot be changed nor duplicated (351), and calls before Initialize / after Terminate fail (122/123, 132/133,
+/// 142/143). After Terminate with cmi.exit = "suspend", the next Initialize resumes the same data with
+/// cmi.entry = "resume" (a new launch of a suspended attempt); any other exit starts a new attempt from the seed data.
+/// </remarks>
 public static class ScormEditorBackend {
 
 	/// <summary>SCORM 2004 error code 401: Undefined Data Model Element.</summary>
 	public const int ErrorUndefinedElement = 401;
+	public const int ErrorGetBeforeInit = 122;
+	public const int ErrorGetAfterTerm = 123;
+	public const int ErrorSetBeforeInit = 132;
+	public const int ErrorSetAfterTerm = 133;
+	public const int ErrorCommitBeforeInit = 142;
+	public const int ErrorCommitAfterTerm = 143;
+	/// <summary>SCORM 2004 error code 351: General Set Failure (index gap, objective id changed or duplicated).</summary>
+	public const int ErrorGeneralSetFailure = 351;
+	/// <summary>SCORM 2004 error code 408: Data Model Dependency Not Established (field written before the id).</summary>
+	public const int ErrorDependencyNotEstablished = 408;
 
 	static readonly Dictionary<string, string> data = new Dictionary<string, string>();
 	static readonly Regex CollectionIndex = new Regex(@"\.(\d+)\.", RegexOptions.CultureInvariant);
+	static readonly Regex TopLevelEntry = new Regex(@"^(cmi\.(?:objectives|interactions))\.(\d+)\.(.+)$", RegexOptions.CultureInvariant);
+	static bool seeded;
+	static readonly Dictionary<string, int> injectedErrors = new Dictionary<string, int>();
 
 	/// <summary>The data model as it is currently stored.</summary>
 	public static IDictionary<string, string> Data { get { return data; } }
@@ -35,23 +55,47 @@ public static class ScormEditorBackend {
 	public static bool IsTerminated { get; private set; }
 	public static int CommitCount { get; private set; }
 
-	/// <summary>Restores the seed data and the initial state.</summary>
+	/// <summary>Restores the seed data and the initial state (a brand new attempt).</summary>
 	public static void Reset() {
 		data.Clear();
 		LastError = 0;
 		IsInitialized = false;
 		IsTerminated = false;
 		CommitCount = 0;
+		injectedErrors.Clear();
 		Seed();
+		seeded = true;
 	}
 
+	/// <summary>
+	/// Starts a session. First call: seed data. After Terminate: resumes the data if cmi.exit was "suspend",
+	/// otherwise starts a new attempt from the seed data.
+	/// </summary>
 	public static bool Initialize() {
-		Reset();
+		if (!seeded) {
+			Reset();
+		} else if (IsTerminated) {
+			string exit;
+			bool suspended = data.TryGetValue("cmi.exit", out exit) && exit == "suspend";
+			if (suspended) {
+				data.Remove("cmi.exit");
+				data.Remove("cmi.session_time");
+				data["cmi.entry"] = "resume";
+			} else {
+				Reset();
+			}
+		}
+		IsTerminated = false;
 		IsInitialized = true;
+		LastError = 0;
 		return true;
 	}
 
 	public static string GetValue(string identifier) {
+		if (!IsInitialized) {
+			LastError = IsTerminated ? ErrorGetAfterTerm : ErrorGetBeforeInit;
+			return "";
+		}
 		string value;
 		if (identifier != null && data.TryGetValue(identifier, out value)) {
 			LastError = 0;
@@ -62,8 +106,19 @@ public static class ScormEditorBackend {
 	}
 
 	public static bool SetValue(string identifier, string value) {
+		if (!IsInitialized) {
+			LastError = IsTerminated ? ErrorSetAfterTerm : ErrorSetBeforeInit;
+			return false;
+		}
 		if (string.IsNullOrEmpty(identifier)) {
 			LastError = ErrorUndefinedElement;
+			return false;
+		}
+		int error;
+		if (!injectedErrors.TryGetValue(identifier, out error))
+			error = CheckCollectionRules(identifier, value ?? "");
+		if (error != 0) {
+			LastError = error;
 			return false;
 		}
 		LastError = 0;
@@ -72,7 +127,23 @@ public static class ScormEditorBackend {
 		return true;
 	}
 
+	/// <summary>
+	/// Testing aid: every SetValue on identifier fails with errorCode (e.g. 406, 351) until ClearInjectedErrors or Reset.
+	/// Simulates an LMS that rejects a value.
+	/// </summary>
+	public static void InjectSetError(string identifier, int errorCode) {
+		injectedErrors[identifier] = errorCode;
+	}
+
+	public static void ClearInjectedErrors() {
+		injectedErrors.Clear();
+	}
+
 	public static bool Commit() {
+		if (!IsInitialized) {
+			LastError = IsTerminated ? ErrorCommitAfterTerm : ErrorCommitBeforeInit;
+			return false;
+		}
 		LastError = 0;
 		CommitCount++;
 		return true;
@@ -88,16 +159,66 @@ public static class ScormEditorBackend {
 	public static string GetErrorString(int code) {
 		switch (code) {
 		case 0: return "No Error";
+		case ErrorGetBeforeInit: return "Retrieve Data Before Initialization";
+		case ErrorGetAfterTerm: return "Retrieve Data After Termination";
+		case ErrorSetBeforeInit: return "Store Data Before Initialization";
+		case ErrorSetAfterTerm: return "Store Data After Termination";
+		case ErrorCommitBeforeInit: return "Commit Before Initialization";
+		case ErrorCommitAfterTerm: return "Commit After Termination";
+		case ErrorGeneralSetFailure: return "General Set Failure";
 		case ErrorUndefinedElement: return "Undefined Data Model Element";
+		case ErrorDependencyNotEstablished: return "Data Model Dependency Not Established";
+		case 406: return "Data Model Element Type Mismatch";
+		case 407: return "Data Model Element Value Out Of Range";
 		default: return "General Exception";
 		}
+	}
+
+	static int CheckCollectionRules(string identifier, string value) {
+		// Indexes must be contiguous: n <= _count at every collection level.
+		foreach (Match m in CollectionIndex.Matches(identifier)) {
+			string countKey = identifier.Substring(0, m.Index) + "._count";
+			string current;
+			int count = data.TryGetValue(countKey, out current) ? ScormFormat.ParseInt(current) : 0;
+			if (int.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) > count)
+				return ErrorGeneralSetFailure;
+		}
+
+		Match entry = TopLevelEntry.Match(identifier);
+		if (!entry.Success)
+			return 0;
+		string prefix = entry.Groups[1].Value + "." + entry.Groups[2].Value + ".";
+		string field = entry.Groups[3].Value;
+		string existingId;
+		bool hasId = data.TryGetValue(prefix + "id", out existingId) && !string.IsNullOrEmpty(existingId);
+
+		if (field != "id")
+			return hasId ? 0 : ErrorDependencyNotEstablished;
+
+		if (entry.Groups[1].Value == "cmi.objectives") {
+			if (hasId && existingId != value)
+				return ErrorGeneralSetFailure;
+			int count = ScormFormat.ParseInt(GetRaw("cmi.objectives._count"));
+			for (int i = 0; i < count; i++) {
+				if (i.ToString(System.Globalization.CultureInfo.InvariantCulture) == entry.Groups[2].Value)
+					continue;
+				if (GetRaw("cmi.objectives." + i + ".id") == value)
+					return ErrorGeneralSetFailure;
+			}
+		}
+		return 0;
+	}
+
+	static string GetRaw(string key) {
+		string v;
+		return data.TryGetValue(key, out v) ? v : "";
 	}
 
 	// Like a real LMS, writing cmi.interactions.N.x grows cmi.interactions._count to N+1 (also for nested collections).
 	static void UpdateCounts(string identifier) {
 		foreach (Match m in CollectionIndex.Matches(identifier)) {
 			string countKey = identifier.Substring(0, m.Index) + "._count";
-			int index = int.Parse(m.Groups[1].Value);
+			int index = int.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
 			string current;
 			int count = 0;
 			if (data.TryGetValue(countKey, out current))

@@ -90,6 +90,7 @@ public static class ScormPackager {
 		result.xsdDirectory = ResolveXsdDirectory(xsdRoot, settings.edition, out warning);
 		if (warning != null)
 			result.warnings.Add(warning);
+		result.warnings.AddRange(ScormManifestBuilder.GetEditionWarnings(settings));
 		if (!Directory.Exists(result.xsdDirectory))
 			throw new DirectoryNotFoundException("XSD folder not found: " + result.xsdDirectory);
 

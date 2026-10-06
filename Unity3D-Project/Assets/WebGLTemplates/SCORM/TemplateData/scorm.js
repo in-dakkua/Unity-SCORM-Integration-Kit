@@ -448,31 +448,25 @@ function getAPIHandle()
 
 /*******************************************************************************
 **
-** Function findAPI(win)
-** Return:  The API found in win or one of its parents, or null.
+** Function findAPIByName(win, name)
+** Return:  The object called name (API_1484_11 or API) in win or one of its
+**          parents, or null.
 **
 ** Description:
-** In each window API_1484_11 (SCORM 2004) is preferred over API (SCORM 1.2).
-** Access to a cross-origin parent throws; that ends the search instead of
-** breaking the content.
+** A window that cannot be accessed (cross-origin) is skipped and the search
+** goes on with its parent, so the content does not break.
 **
 *******************************************************************************/
-function findAPI(win)
+function findAPIByName(win, name)
 {
    var findAPITries = 0;
    while (win != null)
    {
       try
       {
-         if (win.API_1484_11 != null)
+         if (win[name] != null)
          {
-            versionIsSCORM2004 = true;
-            return win.API_1484_11;
-         }
-         if (win.API != null)
-         {
-            versionIsSCORM2004 = false;
-            return win.API;
+            return win[name];
          }
       }
       catch (e)
@@ -504,21 +498,63 @@ function findAPI(win)
 
 /*******************************************************************************
 **
+** Function findAPI(win)
+** Return:  The API found in win or one of its parents, or null.
+**
+** Description:
+** Kept for compatibility: looks for API_1484_11 in the whole chain first, and
+** only then for API (SCORM 1.2). Sets versionIsSCORM2004.
+**
+*******************************************************************************/
+function findAPI(win)
+{
+   var theAPI = findAPIByName(win, "API_1484_11");
+   if (theAPI != null)
+   {
+      versionIsSCORM2004 = true;
+      return theAPI;
+   }
+   theAPI = findAPIByName(win, "API");
+   if (theAPI != null)
+   {
+      versionIsSCORM2004 = false;
+   }
+   return theAPI;
+}
+
+/*******************************************************************************
+**
 ** Function getAPI()
-** Return:  The API found in the frame hierarchy, then in the opener hierarchy;
-**          the simulator if ?scormsim=1 and no LMS API exists; otherwise null.
+** Return:  API_1484_11 from the frame hierarchy or the opener hierarchy; only
+**          if neither has it, API (SCORM 1.2) from the same hierarchies; the
+**          simulator if ?scormsim=1 and no LMS API exists; otherwise null.
 **
 *******************************************************************************/
 function getAPI()
 {
-   var theAPI = findAPI(window);
-   if (theAPI == null)
+   var opener = null;
+   try { opener = window.opener; } catch (e) { opener = null; }
+   if (typeof(opener) == "undefined") opener = null;
+
+   var theAPI = findAPIByName(window, "API_1484_11");
+   if (theAPI == null && opener != null)
    {
-      var opener = null;
-      try { opener = window.opener; } catch (e) { opener = null; }
-      if (opener != null && typeof(opener) != "undefined")
+      theAPI = findAPIByName(opener, "API_1484_11");
+   }
+   if (theAPI != null)
+   {
+      versionIsSCORM2004 = true;
+   }
+   else
+   {
+      theAPI = findAPIByName(window, "API");
+      if (theAPI == null && opener != null)
       {
-         theAPI = findAPI(opener);
+         theAPI = findAPIByName(opener, "API");
+      }
+      if (theAPI != null)
+      {
+         versionIsSCORM2004 = false;
       }
    }
 

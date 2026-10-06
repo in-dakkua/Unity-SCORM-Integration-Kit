@@ -101,6 +101,81 @@ public class ScormManifestBuilderTests {
 	}
 
 	[Test]
+	public void Build_4thEdition_Maps3rdCompletionThresholdWithoutCompletedByMeasureAndWarns() {
+		ScormPackageSettings s = Settings(ScormEdition.Scorm2004_4th);
+		s.completionThreshold = 0.8f;
+		string xml = ScormManifestBuilder.Build(s, SampleFiles);
+		XmlNamespaceManager ns;
+		XmlElement ct = (XmlElement)Load(xml, out ns).SelectSingleNode("//cp:item/adlcp:completionThreshold", ns);
+		Assert.IsNotNull(ct);
+		Assert.AreEqual("false", ct.GetAttribute("completedByMeasure"));
+		Assert.AreEqual("0.8", ct.GetAttribute("minProgressMeasure"));
+		Assert.AreEqual("", ct.InnerText);
+		List<string> warnings = ScormManifestBuilder.GetEditionWarnings(s);
+		Assert.AreEqual(1, warnings.Count);
+		StringAssert.Contains("3rd Edition setting", warnings[0]);
+		CollectionAssert.IsEmpty(ValidateXml(xml, Xsd4thDir));
+	}
+
+	[Test]
+	public void Build_3rdEdition_Maps4thCompletedByMeasureToElementAndWarns() {
+		ScormPackageSettings s = Settings(ScormEdition.Scorm2004_3rd);
+		s.completedByMeasure = true;
+		s.minProgressMeasure = 0.6f;
+		string xml = ScormManifestBuilder.Build(s, SampleFiles);
+		XmlNamespaceManager ns;
+		XmlNode ct = Load(xml, out ns).SelectSingleNode("//cp:item/adlcp:completionThreshold", ns);
+		Assert.IsNotNull(ct);
+		Assert.AreEqual("0.6", ct.InnerText);
+		Assert.AreEqual(0, ct.Attributes.Count);
+		List<string> warnings = ScormManifestBuilder.GetEditionWarnings(s);
+		Assert.AreEqual(1, warnings.Count);
+		StringAssert.Contains("4th Edition settings", warnings[0]);
+		CollectionAssert.IsEmpty(ValidateXml(xml, Xsd4thDir));
+	}
+
+	[Test]
+	public void Build_BothEditionsSettings_UsesOwnEditionAndWarnsAboutTheOther() {
+		ScormPackageSettings s4 = Settings(ScormEdition.Scorm2004_4th);
+		s4.completionThreshold = 0.3f;
+		s4.completedByMeasure = true;
+		s4.minProgressMeasure = 0.9f;
+		XmlNamespaceManager ns;
+		XmlElement ct = (XmlElement)Load(ScormManifestBuilder.Build(s4, SampleFiles), out ns).SelectSingleNode("//cp:item/adlcp:completionThreshold", ns);
+		Assert.AreEqual("true", ct.GetAttribute("completedByMeasure"));
+		Assert.AreEqual("0.9", ct.GetAttribute("minProgressMeasure"));
+		StringAssert.Contains("ignored", ScormManifestBuilder.GetEditionWarnings(s4).Single());
+
+		ScormPackageSettings s3 = Settings(ScormEdition.Scorm2004_3rd);
+		s3.completionThreshold = 0.3f;
+		s3.completedByMeasure = true;
+		s3.minProgressMeasure = 0.9f;
+		Assert.AreEqual("0.3", Load(ScormManifestBuilder.Build(s3, SampleFiles), out ns).SelectSingleNode("//cp:item/adlcp:completionThreshold", ns).InnerText);
+		StringAssert.Contains("ignored", ScormManifestBuilder.GetEditionWarnings(s3).Single());
+	}
+
+	[Test]
+	public void GetEditionWarnings_OwnEditionSettings_NoWarnings() {
+		ScormPackageSettings s3 = Settings(ScormEdition.Scorm2004_3rd);
+		s3.completionThreshold = 0.8f;
+		ScormPackageSettings s4 = Settings(ScormEdition.Scorm2004_4th);
+		s4.completedByMeasure = true;
+		CollectionAssert.IsEmpty(ScormManifestBuilder.GetEditionWarnings(s3));
+		CollectionAssert.IsEmpty(ScormManifestBuilder.GetEditionWarnings(s4));
+		CollectionAssert.IsEmpty(ScormManifestBuilder.GetEditionWarnings(Settings(ScormEdition.Scorm2004_4th)));
+	}
+
+	[Test]
+	public void Package_AddsEditionWarningsToResult() {
+		string build = TempDir();
+		File.WriteAllText(Path.Combine(build, "index.html"), "<html></html>");
+		ScormPackageSettings s = Settings(ScormEdition.Scorm2004_4th);
+		s.completionThreshold = 0.8f;
+		ScormPackageResult result = ScormPackager.Package(build, Path.Combine(TempDir(), "out.zip"), s, Path.Combine(Application.dataPath, "SCORM/Plugins"));
+		Assert.IsTrue(result.warnings.Any(w => w.Contains("minProgressMeasure=\"0.8\"")), string.Join("\n", result.warnings.ToArray()));
+	}
+
+	[Test]
 	public void Build_WithoutOptionalValues_OmitsOptionalElements() {
 		XmlNamespaceManager ns;
 		XmlDocument doc = Load(ScormManifestBuilder.Build(Settings(ScormEdition.Scorm2004_3rd), SampleFiles), out ns);

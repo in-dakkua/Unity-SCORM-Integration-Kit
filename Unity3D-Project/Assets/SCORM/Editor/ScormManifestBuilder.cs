@@ -116,9 +116,19 @@ public static class ScormManifestBuilder {
 						w.WriteAttributeString("completedByMeasure", "true");
 						w.WriteAttributeString("minProgressMeasure", ScormFormat.ToReal(Clamp01(settings.minProgressMeasure)));
 						w.WriteEndElement();
+					} else if (settings.completionThreshold.HasValue) {
+						// 3rd Edition threshold mapped to 4th: same cmi.completion_threshold, but the LMS does not
+						// override the completion_status set by the SCO (completedByMeasure stays false).
+						w.WriteStartElement("completionThreshold", NsAdlcp);
+						w.WriteAttributeString("completedByMeasure", "false");
+						w.WriteAttributeString("minProgressMeasure", ScormFormat.ToReal(Clamp01(settings.completionThreshold.Value)));
+						w.WriteEndElement();
 					}
 				} else if (settings.completionThreshold.HasValue) {
 					w.WriteElementString("completionThreshold", NsAdlcp, ScormFormat.ToReal(Clamp01(settings.completionThreshold.Value)));
+				} else if (settings.completedByMeasure) {
+					// 4th Edition completedByMeasure mapped to 3rd: the threshold is minProgressMeasure.
+					w.WriteElementString("completionThreshold", NsAdlcp, ScormFormat.ToReal(Clamp01(settings.minProgressMeasure)));
 				}
 
 				if (settings.timeLimitSecs > 0f) {
@@ -153,6 +163,32 @@ public static class ScormManifestBuilder {
 			}
 			return new UTF8Encoding(false).GetString(ms.ToArray());
 		}
+	}
+
+	/// <summary>
+	/// Warnings for settings that belong to the other edition: they are mapped by <see cref="Build"/> (3rd
+	/// completionThreshold to 4th completedByMeasure="false" minProgressMeasure, 4th completedByMeasure/minProgressMeasure
+	/// to the 3rd completionThreshold element) or ignored when both are set.
+	/// </summary>
+	public static List<string> GetEditionWarnings(ScormPackageSettings settings) {
+		List<string> warnings = new List<string>();
+		if (settings == null) return warnings;
+		bool is4th = settings.edition == ScormEdition.Scorm2004_4th;
+		bool hasThreshold = settings.completionThreshold.HasValue;
+		if (is4th && hasThreshold) {
+			string threshold = ScormFormat.ToReal(Clamp01(settings.completionThreshold.Value));
+			if (settings.completedByMeasure)
+				warnings.Add("Completion Threshold " + threshold + " is a 3rd Edition setting and is ignored: the 4th Edition package uses completedByMeasure=\"true\" minProgressMeasure=\"" + ScormFormat.ToReal(Clamp01(settings.minProgressMeasure)) + "\".");
+			else
+				warnings.Add("Completion Threshold " + threshold + " is a 3rd Edition setting: the 4th Edition package writes it as completedByMeasure=\"false\" minProgressMeasure=\"" + threshold + "\" (cmi.completion_threshold = " + threshold + "; the LMS does not override the completion status).");
+		} else if (!is4th && settings.completedByMeasure) {
+			string min = ScormFormat.ToReal(Clamp01(settings.minProgressMeasure));
+			if (hasThreshold)
+				warnings.Add("completedByMeasure/minProgressMeasure (" + min + ") are 4th Edition settings and are ignored: the 3rd Edition package uses Completion Threshold " + ScormFormat.ToReal(Clamp01(settings.completionThreshold.Value)) + ".");
+			else
+				warnings.Add("completedByMeasure/minProgressMeasure are 4th Edition settings: the 3rd Edition package writes <adlcp:completionThreshold>" + min + "</adlcp:completionThreshold> instead (3rd Edition has no completedByMeasure).");
+		}
+		return warnings;
 	}
 
 	/// <summary>

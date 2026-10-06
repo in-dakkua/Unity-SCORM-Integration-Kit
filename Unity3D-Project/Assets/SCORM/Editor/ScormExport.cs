@@ -225,6 +225,9 @@ public class ScormExport : EditorWindow {
 			PlayerPrefs.SetString("SCO_Title", EditorGUILayout.TextField(new GUIContent("Module Title:","The title of the Unity content.  Note, this title may show as the first item in an LMS-provided table of contents."), PlayerPrefs.GetString("SCO_Title")));
 			PlayerPrefs.SetString("Data_From_Lms", EditorGUILayout.TextField(new GUIContent("Launch Data:","User-defined string value that can be used as initial learning experience state data."), PlayerPrefs.GetString("Data_From_Lms")));
 
+			foreach (string editionWarning in ScormManifestBuilder.GetEditionWarnings(ScormPackageSettings.FromPlayerPrefs()))
+				EditorGUILayout.HelpBox(editionWarning, MessageType.Warning);
+
 			if (edition == 0) {
 				PlayerPrefs.SetString(ScormPackageSettings.PrefCompletionThreshold, EditorGUILayout.TextField(new GUIContent("Completion Threshold:","Optional (0..1, e.g. 0.8). Progress measure at which the LMS considers the SCO completed. Empty = not written."), PlayerPrefs.GetString(ScormPackageSettings.PrefCompletionThreshold)));
 			} else {
@@ -247,9 +250,15 @@ public class ScormExport : EditorWindow {
 
 		// Publish Buttons
 		GUI.skin.button.fontSize = 12;
-		if(GUILayout.Button(new GUIContent ("Publish", "Package the WebGL build in 'Folder Location' as a SCORM zip.")))
-			Publish();
-		if(GUILayout.Button(new GUIContent ("Build WebGL + Publish", "Build the enabled scenes for WebGL with the SCORM template into 'Folder Location', then package it.")))
-			BuildAndPublish();
+		// Builds and file dialogs must not run inside OnGUI (they break the IMGUI layout): run them on the next editor
+		// update and leave the current GUI pass. ExitGUI works by throwing, so it must stay outside any try/catch.
+		if(GUILayout.Button(new GUIContent ("Publish", "Package the WebGL build in 'Folder Location' as a SCORM zip."))) {
+			EditorApplication.delayCall += Publish;
+			GUIUtility.ExitGUI();
+		}
+		if(GUILayout.Button(new GUIContent ("Build WebGL + Publish", "Build the enabled scenes for WebGL with the SCORM template into 'Folder Location', then package it."))) {
+			EditorApplication.delayCall += BuildAndPublish;
+			GUIUtility.ExitGUI();
+		}
     }
 }

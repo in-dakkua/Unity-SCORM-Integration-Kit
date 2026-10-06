@@ -19,7 +19,7 @@
     {
       "id": "F001",
       "name": "scorm2004-webgl-e2e-build",
-      "status": "in_progress",
+      "status": "blocked",
       "description": "Prueba end-to-end: proyecto sincronizado con la versión WebGL del .unitypackage, bugs bloqueantes del runtime corregidos, build WebGL por línea de comandos y zip SCORM 2004 (3rd Edition por defecto, 4th opcional) listo para subir a SCORM Cloud y Moodle.",
       "acceptance": [
         "Assets/ contiene la versión WebGL (Plugins/scorm.jslib, WebGLTemplates/SCORM, scripts sin ExternalCall ni System.Threading); se elimina WebPlayerTemplates.",
@@ -30,7 +30,44 @@
         "Zip generado validado localmente (manifest contra XSD o inspección) y probado con ScormSimulator; prueba en SCORM Cloud la hace el humano (visual check)."
       ],
       "requires_plan_approval": true,
-      "requires_visual_check": true
+      "requires_visual_check": true,
+      "notes": "Bloqueada solo por firma humana del visual check (el humano confirmó en chat 2026-10-06 que la build se visualiza en SCORM Cloud, pero falta firmar .harness/progress/visual_check_scorm2004-webgl-e2e-build.md)."
+    },
+    {
+      "id": "F002",
+      "name": "scorm-scenario-api",
+      "status": "done",
+      "description": "API del kit para apps multi-escenario en un único SCO: objetivos con id propio y upsert por id, puntuación por objetivo (raw/min/max/scaled) y global, sin escrituras vacías ni redundantes, más los menores M1/M4/M5 de la review F001.",
+      "acceptance": [
+        "Nuevo API público (aditivo, sin romper AddObjective/UpdateObjective existentes): upsert de objetivo por id (crea si no existe, actualiza el índice existente si ya se cargó de LMS al reanudar), con score.raw/min/max/scaled, success/completion status, progress_measure y description.",
+        "Interacciones enlazables a un objetivo por id; id de interacción propio opcional.",
+        "M3: nunca se envía '' ni null a elementos de vocabulario/estado/score; solo se escriben campos conocidos y que cambian respecto al valor en StudentRecord.",
+        "M1: findAPI busca API_1484_11 en toda la cadena (padres y opener) antes de caer a API 1.2.",
+        "M4: ajustes de la otra edición se mapean (3rd threshold <-> 4th completedByMeasure/minProgressMeasure) o generan warning visible.",
+        "M5: Build/Publish desde la ventana del exportador vía EditorApplication.delayCall + GUIUtility.ExitGUI.",
+        "Evento/callback público con cada llamada a la API SCORM (operación, elemento, valor, resultado, código de error) para que una UI pueda mostrar log visual.",
+        "Tests EditMode nuevos para upsert, no-escritura de vacíos, enlace interacción-objetivo y reanudación; init.sh verde."
+      ],
+      "requires_plan_approval": false,
+      "requires_visual_check": false,
+      "notes": "Plan approval eximida explícitamente por el humano en chat 2026-10-06 ('No hace falta que me preguntes'). El plan se escribe igualmente por trazabilidad."
+    },
+    {
+      "id": "F003",
+      "name": "scorm-scenario-demo",
+      "status": "pending",
+      "description": "Demo + plantilla de partida: escena con UI para jugar escenarios simulados con datos aleatorios, cálculo de nota global, persistencia/reanudación y log visual de todas las llamadas SCORM. Base para el proyecto final.",
+      "acceptance": [
+        "Código de plantilla reutilizable separado de la UI de demo: definición de escenarios por ScriptableObject (id, título, peso, puntuación máxima, umbral de aprobado), servicio tracker sobre la API de F002 (empezar escenario, registrar decisiones como interacciones, completar con nota, política mejor/última, nota global ponderada en cmi.score.*, success/completion global, progress_measure, suspend_data JSON versionado, commit, exit suspend/normal).",
+        "Escena Assets/SCORM/Demo/ScenarioDemo.unity generada de forma reproducible por un editor script (menú y batchmode), primera escena en Build Settings; TestApp se mantiene.",
+        "UI (uGUI, textos en español): lista de escenarios con estado/nota/intentos, botón para simular partida con decisiones y nota aleatorias (y opción de nota manual), panel de resumen global, botones Commit, Salir (suspend), Finalizar (normal), Reiniciar datos de demo.",
+        "Log visual en pantalla de cada llamada SCORM (Get/Set/Commit/Terminate, valor, resultado, código de error en rojo), filtrable/limpiable, también a consola del navegador.",
+        "Funciona en Play Mode (backend Editor), en navegador con ?scormsim=1 y en SCORM Cloud/Moodle; al relanzar reanuda estado de escenarios.",
+        "Build WebGL + zip 3rd por CLI de la demo; tests EditMode del tracker; guía breve de uso como plantilla en Assets/SCORM/Demo/README.md."
+      ],
+      "requires_plan_approval": false,
+      "requires_visual_check": true,
+      "notes": "Plan approval eximida por el humano en chat 2026-10-06. Escena generada por código en batchmode (sin MCP)."
     }
   ]
 }
